@@ -14,16 +14,27 @@ export function ApiStatus() {
 
   useEffect(() => {
     const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort("timeout"), 20_000);
     fetch("/api/health/ready", { signal: ctrl.signal, cache: "no-store" })
       .then(async (r) => {
         if (!r.ok) throw new Error(`A API respondeu com status ${r.status}.`);
         setState({ kind: "ok", data: healthCheckSchema.parse(await r.json()) });
       })
       .catch((e: unknown) => {
-        if (ctrl.signal.aborted) return;
-        setState({ kind: "error", message: e instanceof Error && e.message.startsWith("A API") ? e.message : "Não foi possível falar com a API. Ela está rodando (pnpm dev)?" });
-      });
-    return () => ctrl.abort();
+        if (ctrl.signal.aborted && ctrl.signal.reason !== "timeout") return; // componente desmontado
+        const message =
+          ctrl.signal.reason === "timeout"
+            ? "A API demorou demais para responder. Tente recarregar a página."
+            : e instanceof Error && e.message.startsWith("A API")
+              ? e.message
+              : "Não foi possível falar com a API agora.";
+        setState({ kind: "error", message });
+      })
+      .finally(() => clearTimeout(timer));
+    return () => {
+      clearTimeout(timer);
+      ctrl.abort("unmount");
+    };
   }, []);
 
   if (state.kind === "loading") return <p className="text-text-2" aria-live="polite">Verificando a API…</p>;

@@ -30,6 +30,8 @@ async function proxy(req: Request, ctx: { params: Promise<{ path: string[] }> })
       body: hasBody ? req.body : undefined,
       redirect: "manual",
       cache: "no-store",
+      // Sem resposta em 15 s: devolve 502 em vez de deixar a tela carregando para sempre.
+      signal: AbortSignal.any([req.signal, AbortSignal.timeout(15_000)]),
       // Necessário para enviar o corpo como stream no fetch do Node.
       ...(hasBody ? { duplex: "half" } : {}),
     } as RequestInit);
