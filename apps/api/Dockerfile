@@ -16,5 +16,7 @@ COPY --from=build /repo /repo
 WORKDIR /repo/apps/api
 USER node
 EXPOSE 4000
-# Aplica migrações pendentes e sobe a API. (O worker usa a mesma imagem com: node dist/worker.js)
-CMD ["sh", "-c", "pnpm exec prisma migrate deploy && node dist/main.js"]
+# Confere a DATABASE_URL, aplica migrações pendentes e sobe a API.
+# (O worker usa a mesma imagem com: node dist/worker.js)
+COPY --chown=node:node apps/api/docker-entrypoint.sh /usr/local/bin/studio-entrypoint
+CMD ["sh", "/usr/local/bin/studio-entrypoint"]
