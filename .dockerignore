@@ -1,0 +1,13 @@
+# Nunca enviar segredos nem artefatos locais para o build
+.env
+.env.*
+!.env.example
+**/node_modules
+**/.next
+**/dist
+**/.turbo
+**/src/generated
+**/*.tsbuildinfo
+.git
+design/blender
+design/stickers/originais

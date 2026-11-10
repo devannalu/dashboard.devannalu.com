@@ -1,12 +1,13 @@
+import { resolve } from "node:path";
 import type { NextConfig } from "next";
-
-/** Endereço interno da API (ADR-002: mesma origem — o navegador só fala com /api da própria web). */
-const API_ORIGIN = process.env.API_ORIGIN ?? "http://localhost:4000";
 
 const nextConfig: NextConfig = {
   cacheComponents: true,
   partialPrefetching: true,
   poweredByHeader: false,
+  // Saída enxuta para Docker; no monorepo, o rastreamento de arquivos parte da raiz.
+  output: "standalone",
+  outputFileTracingRoot: resolve(import.meta.dirname, "../.."),
   transpilePackages: ["@studio/contracts"],
   turbopack: {
     rules: {
@@ -16,9 +17,7 @@ const nextConfig: NextConfig = {
       },
     },
   },
-  async rewrites() {
-    return [{ source: "/api/:path*", destination: `${API_ORIGIN}/api/:path*` }];
-  },
+  // O proxy /api fica em src/app/api/[...path]/route.ts (lê API_ORIGIN em tempo de execução).
   async headers() {
     // Cabeçalhos básicos; CSP com nonce entra no épico de segurança (E17-2).
     return [

@@ -2,7 +2,11 @@ packages:
   - apps/*
   - packages/*
 
-# Dependências com scripts de instalação permitidos explicitamente (segurança da cadeia de suprimentos).
+# Scripts de instalação de dependências: cada pacote precisa de decisão explícita (segurança da cadeia
+# de suprimentos). false = bloqueado. Build, testes e migrações funcionam com todos estes bloqueados.
 allowBuilds:
   sharp: false
   unrs-resolver: false
+  esbuild: false
+  prisma: false
+  "@prisma/engines": false
