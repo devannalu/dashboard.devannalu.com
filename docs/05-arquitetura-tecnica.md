@@ -28,7 +28,7 @@ Não há motivo técnico para trocar a baseline. Duas aplicações (Next + Nest)
                 │  Caddy (reverse proxy,│  TLS automático, HSTS,
                 │  HTTPS, compressão)   │  limites de corpo
                 └──────────┬────────────┘
-                           │  (mesma origem: dashboard.devannalu.com)
+                           │  (mesma origem: studio.devannalu.com)   
              ┌─────────────┴──────────────┐
              │ /*                         │ /api/*
              ▼                            ▼
