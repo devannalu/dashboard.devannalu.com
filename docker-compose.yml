@@ -1,8 +1,7 @@
 # Serviços de desenvolvimento local (NÃO usar em produção).
 # Subir: pnpm db:up   ·   Derrubar: pnpm db:down   ·   Dados persistem nos volumes nomeados.
 #
-# Armazenamento S3 local: a imagem pública do MinIO foi descontinuada. A escolha do substituto
-# (ex.: SeaweedFS ou Garage) fica para o épico de arquivos (E11) — ver registro de decisões, Q28.
+# Armazenamento S3: Garage (D-31), o mesmo usado em produção na VPS.
 name: annalu-studio-os
 
 services:
@@ -25,5 +24,22 @@ services:
       timeout: 3s
       retries: 30
 
+  # Armazenamento de arquivos S3 (D-31). Inicialização única: ver docs/infra/armazenamento.md
+  garage:
+    image: dxflrs/garage:v2.5.0
+    restart: unless-stopped
+    environment:
+      # Valores padrão SÓ para desenvolvimento local (porta presa em 127.0.0.1). Produção usa segredos próprios.
+      GARAGE_RPC_SECRET: ${GARAGE_RPC_SECRET:-6465762d6c6f63616c2d736f6d656e74652d6e616f2d757361722d656d2d70726f64}
+      GARAGE_ADMIN_TOKEN: ${GARAGE_ADMIN_TOKEN:-dev-local-admin-token}
+    volumes:
+      - ./infra/garage/garage.toml:/etc/garage.toml:ro
+      - garage-meta:/var/lib/garage/meta
+      - garage-data:/var/lib/garage/data
+    ports:
+      - "127.0.0.1:3900:3900"   # API S3 (só na máquina local)
+
 volumes:
   mysql-data:
+  garage-meta:
+  garage-data:

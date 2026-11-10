@@ -20,7 +20,8 @@ Centro de comando digital da **Dev Annalu** (gestão de projetos, escopo, tarefa
 ## Estado atual (10/11/2026)
 - Fase 0 documentada; protótipo visual aprovado em partes (`design/dashboard-colagem.html` + `design/app.js`).
 - **M1 — Fundação:** épico E0 concluído (monorepo, API base, web com tokens, Prisma 7 com migração inicial, fila de jobs + worker, Docker Compose com MySQL na porta 3307, CI). Branch `feat/m1-fundacao`.
-- Pendente no M1: primitivos de UI e layout (E3-2, E3-3), página `/design` interna.
+- E3-2/E3-3 entregues (componentes em `apps/web/src/components/ui`, layout em `components/shell`, catálogo em `/design` só em dev).
+- Produção: Coolify na VPS da owner — `annalustudio.devannalu.com` (web), `studio-api` (alias interno), MySQL privado. Arquivos: Garage `studio-files` (guia em `docs/infra/armazenamento.md`).
 - Testes: `pnpm turbo run build typecheck test lint` (sem banco) e `pnpm --filter @studio/api test:int` (MySQL real, banco `studio_test`).
 - Pet 3D no Blender pausado (D-28).
 

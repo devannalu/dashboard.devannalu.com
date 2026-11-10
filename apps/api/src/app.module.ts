@@ -6,13 +6,14 @@ import type { Env } from './config/env.js';
 import { DatabaseModule } from './database/database.module.js';
 import { HealthController } from './health/health.controller.js';
 import { JobsModule } from './jobs/jobs.module.js';
+import { StorageModule } from './storage/storage.module.js';
 
 @Module({})
 export class AppModule {
   static forRoot(env: Env): DynamicModule {
     return {
       module: AppModule,
-      imports: [ConfigModule.forRoot(env), DatabaseModule, JobsModule],
+      imports: [ConfigModule.forRoot(env), DatabaseModule, JobsModule, StorageModule],
       controllers: [HealthController],
       providers: [{ provide: APP_FILTER, useClass: ProblemFilter }],
     };
