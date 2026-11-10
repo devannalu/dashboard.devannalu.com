@@ -1,0 +1,40 @@
+# Serviços de desenvolvimento local (NÃO usar em produção).
+# Subir: pnpm db:up   ·   Derrubar: pnpm db:down   ·   Dados persistem nos volumes nomeados.
+name: annalu-studio-os
+
+services:
+  mysql:
+    image: mysql:8.4
+    restart: unless-stopped
+    environment:
+      MYSQL_DATABASE: studio
+      MYSQL_USER: studio
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-studio_dev}
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_dev}
+    command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci"]
+    ports:
+      - "127.0.0.1:3306:3306"   # só na máquina local
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-root_dev}"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  minio:
+    image: minio/minio:latest
+    restart: unless-stopped
+    command: server /data --console-address ":9001"
+    environment:
+      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-studio}
+      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-studio_dev_123}
+    ports:
+      - "127.0.0.1:9000:9000"   # API S3
+      - "127.0.0.1:9001:9001"   # painel web do MinIO
+    volumes:
+      - minio-data:/data
+
+volumes:
+  mysql-data:
+  minio-data:

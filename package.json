@@ -1,0 +1,22 @@
+{
+  "name": "annalu-studio-os",
+  "private": true,
+  "description": "Annalu Studio OS — centro de comando digital da Dev Annalu",
+  "packageManager": "pnpm@12.18.0",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "turbo run dev",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "db:up": "docker compose up -d",
+    "db:down": "docker compose down"
+  },
+  "devDependencies": {
+    "turbo": "^2.5.0",
+    "typescript": "^6.0.2"
+  }
+}

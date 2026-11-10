@@ -1,0 +1,24 @@
+# Dependências e builds
+node_modules/
+dist/
+.next/
+out/
+.turbo/
+coverage/
+*.tsbuildinfo
+
+# Ambiente e segredos (nunca versionar)
+.env
+.env.*
+!.env.example
+
+# Sistema e editores
+.DS_Store
+Thumbs.db
+*.log
+
+# Blender: backups automáticos
+*.blend1
+
+# Cliente Prisma gerado (recriado por prisma generate)
+apps/api/src/generated/

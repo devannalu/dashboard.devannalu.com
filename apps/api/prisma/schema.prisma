@@ -1,0 +1,128 @@
+// Modelo de dados do Annalu Studio OS — referência: docs/06-modelo-dados.md
+// Convenções: IDs cuid, datas em UTC (DATETIME(3)), toda entidade de negócio tem workspaceId.
+
+generator client {
+  provider            = "prisma-client"
+  output              = "../src/generated/prisma"
+  moduleFormat        = "esm"
+  importFileExtension = "js"
+  runtime             = "nodejs"
+}
+
+datasource db {
+  provider = "mysql"
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  COLLABORATOR
+  CLIENT
+}
+
+enum ThemePreference {
+  LIGHT
+  DARK
+  SYSTEM
+}
+
+enum JobStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
+  DEAD
+}
+
+model Workspace {
+  id        String            @id @default(cuid())
+  name      String            @db.VarChar(120)
+  slug      String            @unique @db.VarChar(80)
+  members   WorkspaceMember[]
+  auditLogs AuditLog[]
+  createdAt DateTime          @default(now()) @db.DateTime(3)
+  updatedAt DateTime          @updatedAt @db.DateTime(3)
+}
+
+model User {
+  id              String            @id @default(cuid())
+  /// Normalizado em minúsculas.
+  email           String            @unique @db.VarChar(254)
+  /// Argon2id. Nulo até a owner definir a senha no primeiro acesso (D-19).
+  passwordHash    String?           @db.VarChar(255)
+  name            String            @db.VarChar(120)
+  timezone        String            @default("America/Sao_Paulo") @db.VarChar(64)
+  weekStartsOn    Int               @default(0) @db.TinyInt
+  themePreference ThemePreference   @default(SYSTEM)
+  lastLoginAt     DateTime?         @db.DateTime(3)
+  memberships     WorkspaceMember[]
+  sessions        Session[]
+  createdAt       DateTime          @default(now()) @db.DateTime(3)
+  updatedAt       DateTime          @updatedAt @db.DateTime(3)
+}
+
+model WorkspaceMember {
+  workspaceId String
+  userId      String
+  role        MemberRole @default(OWNER)
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime   @default(now()) @db.DateTime(3)
+
+  @@id([workspaceId, userId])
+  @@index([userId])
+}
+
+model Session {
+  id         String    @id @default(cuid())
+  userId     String
+  /// SHA-256 do token do cookie; o token em si nunca é armazenado.
+  tokenHash  String    @unique @db.Char(64)
+  createdAt  DateTime  @default(now()) @db.DateTime(3)
+  lastSeenAt DateTime  @default(now()) @db.DateTime(3)
+  expiresAt  DateTime  @db.DateTime(3)
+  /// IP truncado (ex.: último octeto zerado) — minimização de dados (LGPD).
+  ip         String?   @db.VarChar(45)
+  userAgent  String?   @db.VarChar(255)
+  revokedAt  DateTime? @db.DateTime(3)
+  user       User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+/// Eventos de segurança (somente inserção). Nunca guardar senha, token ou conteúdo de notas.
+model AuditLog {
+  id          String     @id @default(cuid())
+  workspaceId String?
+  userId      String?
+  action      String     @db.VarChar(80)
+  ip          String?    @db.VarChar(45)
+  userAgent   String?    @db.VarChar(255)
+  metadata    Json?
+  createdAt   DateTime   @default(now()) @db.DateTime(3)
+  workspace   Workspace? @relation(fields: [workspaceId], references: [id], onDelete: SetNull)
+
+  @@index([workspaceId, createdAt])
+  @@index([action, createdAt])
+}
+
+/// Fila de jobs no próprio MySQL (ADR-004), processada com SELECT … FOR UPDATE SKIP LOCKED.
+model Job {
+  id          String    @id @default(cuid())
+  type        String    @db.VarChar(80)
+  payload     Json
+  status      JobStatus @default(PENDING)
+  runAt       DateTime  @default(now()) @db.DateTime(3)
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(6)
+  lockedAt    DateTime? @db.DateTime(3)
+  lockedBy    String?   @db.VarChar(80)
+  lastError   String?   @db.Text
+  /// Idempotência: o mesmo evento não gera dois jobs.
+  dedupeKey   String?   @unique @db.VarChar(191)
+  createdAt   DateTime  @default(now()) @db.DateTime(3)
+  finishedAt  DateTime? @db.DateTime(3)
+
+  @@index([status, runAt])
+}
