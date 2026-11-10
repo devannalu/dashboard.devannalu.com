@@ -1,0 +1,9 @@
+# Quebras de linha LF no repositório (evita diferenças entre Windows e Linux/CI)
+* text=auto eol=lf
+
+# Binários
+*.png binary
+*.jpg binary
+*.ico binary
+*.blend binary
+*.glb binary

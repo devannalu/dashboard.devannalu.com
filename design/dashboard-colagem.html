@@ -1,0 +1,483 @@
+<title>Studio OS Colagem</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800;900&family=Monsieur+La+Doulaise&family=Space+Mono:wght@400;700&display=swap">
+<style>
+/* Layout: parede de adesivos em tela cheia; menu lateral bordô recolhível; cards em vidro fosco por cima.
+   Tipografia aprovada: grotesca pesada (títulos/números) + script floreado (detalhes) + mono (rótulos). */
+:root {
+  --bordo: #7E1414; --bordo-deep: #4A0B0E; --cereja: #B3121C;
+  --bg: #EFE8E3; --glass: rgba(255,255,255,.62); --glass-strong: rgba(255,255,255,.82); --glass-border: rgba(255,255,255,.7);
+  --side-bg: rgba(126,20,20,.97); --side-text: #FFF4F2; --side-hover: rgba(255,255,255,.09); --side-active: rgba(255,255,255,.17);
+  --text: #1E1214; --text-2: #574347; --line: rgba(30,18,20,.11); --field: rgba(255,255,255,.72);
+  --accent: #7E1414; --accent-hover: #63100F; --accent-text: #7E1414; --accent-soft: rgba(126,20,20,.10);
+  --danger: #A8400C; --success: #2C6A48; --info: #2F5470; --warn: #9A6A00;
+  --shadow: 0 8px 32px rgba(40,10,14,.12); --sticker-shadow: rgba(40,10,14,.25);
+  --f-display: "Archivo", "Arial Black", system-ui, sans-serif;
+  --f-script: "Monsieur La Doulaise", "Brush Script MT", cursive;
+  --f-body: "Archivo", "Segoe UI", system-ui, sans-serif;
+  --f-mono: "Space Mono", ui-monospace, Consolas, monospace;
+  --side-w: 252px; --sticker-opacity: .85; --scale: 1;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #0E090A; --glass: rgba(24,13,15,.58); --glass-strong: rgba(24,13,15,.84); --glass-border: rgba(255,255,255,.09);
+  --side-bg: rgba(92,13,16,.97); --side-text: #FFF4F2;
+  --text: #FBF3F3; --text-2: #CDB9BC; --line: rgba(255,255,255,.1); --field: rgba(0,0,0,.3);
+  --accent: #9E1A1F; --accent-hover: #B82329; --accent-text: #FF8F96; --accent-soft: rgba(255,143,150,.13);
+  --danger: #FF9F6E; --success: #8FD3AC; --info: #9DC0DC; --warn: #F2C96B;
+  --shadow: 0 8px 32px rgba(0,0,0,.45); --sticker-shadow: rgba(0,0,0,.6); color-scheme: dark; } }
+:root[data-theme="dark"] {
+  --bg: #0E090A; --glass: rgba(24,13,15,.58); --glass-strong: rgba(24,13,15,.84); --glass-border: rgba(255,255,255,.09);
+  --side-bg: rgba(92,13,16,.97); --side-text: #FFF4F2;
+  --text: #FBF3F3; --text-2: #CDB9BC; --line: rgba(255,255,255,.1); --field: rgba(0,0,0,.3);
+  --accent: #9E1A1F; --accent-hover: #B82329; --accent-text: #FF8F96; --accent-soft: rgba(255,143,150,.13);
+  --danger: #FF9F6E; --success: #8FD3AC; --info: #9DC0DC; --warn: #F2C96B;
+  --shadow: 0 8px 32px rgba(0,0,0,.45); --sticker-shadow: rgba(0,0,0,.6); color-scheme: dark; }
+:root[data-colagem="off"] { --sticker-opacity: 0; }
+:root[data-colagem="sutil"] { --sticker-opacity: .4; }
+:root[data-colagem="presente"] { --sticker-opacity: .85; }
+:root[data-colagem="total"] { --sticker-opacity: 1; }
+:root[data-side="collapsed"] { --side-w: 76px; }
+
+* { box-sizing: border-box; }
+html, body { min-height: 100%; }
+body { background: var(--bg); color: var(--text); font: 400 15px/1.6 var(--f-body); }
+button, input { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent-text); outline-offset: 2px; border-radius: 8px; }
+
+.collage { position: fixed; inset: 0; z-index: 0; pointer-events: none; overflow: hidden; }
+.collage img { position: absolute; width: calc(var(--w) * var(--scale)); height: auto; transform: rotate(var(--r)); opacity: var(--sticker-opacity); filter: drop-shadow(3px 6px 8px var(--sticker-shadow)); transition: opacity .25s; }
+.grain { position: fixed; inset: 0; z-index: 1; pointer-events: none; opacity: .07; mix-blend-mode: multiply;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E"); }
+.glass { background: var(--glass); border: 1px solid var(--glass-border); box-shadow: var(--shadow); -webkit-backdrop-filter: blur(18px) saturate(1.3); backdrop-filter: blur(18px) saturate(1.3); }
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) { .glass { background: var(--glass-strong); } }
+
+.app { position: relative; z-index: 2; display: grid; grid-template-columns: var(--side-w) minmax(0,1fr); min-height: 100vh; transition: grid-template-columns .22s ease; }
+
+/* Menu lateral bordô */
+.side { background: var(--side-bg); color: var(--side-text); padding: 18px 12px; display: flex; flex-direction: column; gap: 22px; position: sticky; top: 0; height: 100vh; overflow: hidden; z-index: 20; box-shadow: 4px 0 24px rgba(40,10,14,.18); }
+.side :focus-visible { outline-color: #FFF4F2; }
+.side-head { display: flex; align-items: center; gap: 8px; min-height: 48px; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; flex: 1; text-decoration: none; color: inherit; padding-left: 4px; }
+.brand img { width: 40px; height: auto; flex: none; filter: drop-shadow(0 2px 3px rgba(0,0,0,.3)); }
+.brand-txt { min-width: 0; line-height: 1; }
+.brand-txt .script { display: block; font: 400 38px/.8 var(--f-script); white-space: nowrap; margin-bottom: 2px; }
+.brand-txt .grot { display: block; font: 900 13px/1 var(--f-display); letter-spacing: -.03em; text-transform: lowercase; opacity: .9; }
+.icon-btn { flex: none; width: 36px; height: 36px; display: grid; place-items: center; border: 0; border-radius: 10px; background: transparent; cursor: pointer; color: inherit; }
+.icon-btn:hover { background: var(--side-hover); }
+.icon-btn svg, nav svg, .tb-btn svg { width: 18px; height: 18px; stroke: currentColor; fill: none; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round; }
+nav ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+nav a { display: flex; align-items: center; gap: 12px; padding: 9px 12px; border-radius: 10px; color: inherit; text-decoration: none; font-size: 14px; font-weight: 500; white-space: nowrap; opacity: .86; }
+nav a:hover { opacity: 1; background: var(--side-hover); }
+nav a[aria-current="page"] { opacity: 1; background: var(--side-active); font-weight: 700; }
+nav svg { flex: none; }
+.count { margin-left: auto; font: 700 11px/1.6 var(--f-mono); background: rgba(255,255,255,.18); padding: 0 8px; border-radius: 99px; }
+.side .label { font: 700 10px/1 var(--f-mono); letter-spacing: .14em; text-transform: uppercase; opacity: .6; padding: 0 12px 8px; white-space: nowrap; }
+.user { margin-top: auto; display: flex; align-items: center; gap: 10px; padding: 8px; border-radius: 12px; color: inherit; text-decoration: none; font-size: 14px; font-weight: 600; white-space: nowrap; }
+.user:hover { background: var(--side-hover); }
+.pfp { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; flex: none; background: #F6D9DD; border: 2px solid rgba(255,255,255,.75); }
+.pfp svg, .pfp img, .tb-pfp svg, .tb-pfp img, .pfp-big svg, .pfp-big img { width: 100%; height: 100%; display: block; object-fit: cover; }
+.user small { display: block; font: 400 11px/1.3 var(--f-mono); opacity: .7; }
+:root[data-side="collapsed"] .side .lbl, :root[data-side="collapsed"] .brand-txt, :root[data-side="collapsed"] .side .label, :root[data-side="collapsed"] .count { display: none; }
+:root[data-side="collapsed"] .side-head { flex-direction: column; }
+:root[data-side="collapsed"] nav a, :root[data-side="collapsed"] .user { justify-content: center; padding-inline: 0; }
+:root[data-side="collapsed"] .brand { justify-content: center; padding: 0; }
+:root[data-side="collapsed"] .icon-btn.collapse svg { transform: rotate(180deg); }
+.backdrop { display: none; }
+
+/* Barra superior */
+.main { min-width: 0; }
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; display: flex; align-items: center; gap: 10px; padding-block: 10px; padding-left: max(28px, env(safe-area-inset-left, 0px)); padding-right: max(28px, env(safe-area-inset-right, 0px)); border-width: 0 0 1px; box-shadow: none; }
+.tb-btn { position: relative; flex: none; height: 38px; min-width: 38px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; padding: 0 10px; border: 1px solid var(--line); border-radius: 12px; background: var(--field); cursor: pointer; font-size: 13px; font-weight: 600; }
+.tb-btn:hover { border-color: var(--accent-text); }
+.menu-btn { display: none; }
+.crumb { font: 700 12px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-2); }
+.search { margin-left: auto; display: flex; align-items: center; gap: 10px; min-width: 0; width: min(340px, 34vw); height: 38px; padding: 0 12px; border: 1px solid var(--line); border-radius: 12px; background: var(--field); color: var(--text-2); font-size: 13px; overflow: hidden; white-space: nowrap; }
+.search kbd { margin-left: auto; font: 700 11px var(--f-mono); padding: 1px 6px; border: 1px solid var(--line); border-radius: 5px; }
+.popover { position: absolute; right: 0; top: calc(100% + 8px); min-width: 210px; padding: 8px; border-radius: 14px; background: var(--glass-strong); border: 1px solid var(--glass-border); box-shadow: var(--shadow); -webkit-backdrop-filter: blur(20px); backdrop-filter: blur(20px); display: grid; gap: 2px; text-align: left; }
+.popover .ph { font: 700 10px/1 var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--text-2); padding: 6px 8px 8px; }
+.popover button { display: flex; align-items: center; gap: 10px; width: 100%; border: 0; background: transparent; border-radius: 9px; padding: 8px; cursor: pointer; font-size: 14px; font-weight: 500; text-align: left; }
+.popover button:hover { background: var(--accent-soft); }
+.popover button[aria-checked="true"] { color: var(--accent-text); font-weight: 700; }
+.popover button[aria-checked="true"]::after { content: "✓"; margin-left: auto; }
+.popover small { color: var(--text-2); font-size: 12px; font-weight: 400; }
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; border: 0; border-radius: 12px; padding: 9px 16px; font-weight: 700; font-size: 14px; cursor: pointer; white-space: nowrap; }
+.btn-primary { background: var(--accent); color: #FFFFFF; }
+.btn-primary:hover { background: var(--accent-hover); }
+.btn-ghost { background: var(--field); border: 1px solid var(--line); }
+.btn-ghost:hover { border-color: var(--accent-text); }
+.btn-sm { padding: 5px 10px; font-size: 12px; border-radius: 10px; }
+.btn:disabled { opacity: .45; cursor: not-allowed; }
+.tb-pfp { width: 38px; height: 38px; border-radius: 50%; overflow: hidden; border: 2px solid var(--accent-text); background: #F6D9DD; flex: none; display: block; }
+
+.content { padding-block: 26px 56px; padding-left: max(28px, env(safe-area-inset-left, 0px)); padding-right: max(28px, env(safe-area-inset-right, 0px)); max-width: 1480px; display: grid; gap: 20px; }
+.proto { font-size: 12px; color: var(--text-2); }
+.proto strong { color: var(--text); }
+
+.hello { border-radius: 22px; padding: 22px 26px; justify-self: start; max-width: 100%; }
+.date { font: 700 12px/1 var(--f-mono); color: var(--text-2); letter-spacing: .08em; text-transform: uppercase; margin-bottom: 10px; }
+.hello h1 { margin: 0; font: 900 clamp(40px, 5.2vw, 66px)/.95 var(--f-display); letter-spacing: -.055em; text-transform: lowercase; text-wrap: balance; text-shadow: 0 0 .5px currentColor, 0 0 10px color-mix(in srgb, currentColor 18%, transparent); }
+.hello h1 em { font: 400 calc(clamp(40px, 5.2vw, 66px) * 1.5)/.8 var(--f-script); letter-spacing: 0; text-transform: none; font-style: normal; color: var(--accent-text); padding-left: .08em; text-shadow: none; }
+.hello p { margin: 8px 0 0; color: var(--text-2); }
+.hello p b { color: var(--text); font-weight: 700; }
+
+.grid { display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(0, 1fr); gap: 20px; align-items: start; }
+.col { display: grid; gap: 20px; min-width: 0; }
+.card { border-radius: 22px; padding: 20px 22px; min-width: 0; }
+.card h2 { margin: 0 0 12px; display: flex; align-items: center; gap: 10px; font: 700 11px/1 var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--text-2); }
+.card h2 a { margin-left: auto; font: 700 13px/1 var(--f-body); letter-spacing: 0; text-transform: none; color: var(--accent-text); text-decoration: none; }
+
+.tasks { list-style: none; margin: 0; padding: 0; display: grid; }
+.tasks li { display: grid; grid-template-columns: 28px minmax(0,1fr) auto; gap: 10px; align-items: center; padding: 10px 0; border-top: 1px solid var(--line); }
+.tasks li:first-child { border-top: 0; }
+.cherry-check { width: 28px; height: 28px; padding: 0; border: 0; background: transparent; cursor: pointer; color: var(--text-2); display: grid; place-items: center; border-radius: 50%; }
+.cherry-check svg { width: 26px; height: 26px; overflow: visible; }
+.cherry-check .on { display: none; }
+.cherry-check[aria-checked="true"] .off { display: none; }
+.cherry-check[aria-checked="true"] .on { display: inline; animation: pop .35s cubic-bezier(.3,1.6,.5,1); transform-origin: 12px 14px; }
+.cherry-check:hover .off circle { stroke: var(--accent-text); }
+@keyframes pop { from { transform: scale(.3) rotate(-25deg); } to { transform: scale(1) rotate(0); } }
+.tasks .t { font-weight: 600; font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tasks li.done .t { text-decoration: line-through; text-decoration-color: var(--accent-text); text-decoration-thickness: 2px; color: var(--text-2); }
+.tasks .meta { font-size: 12.5px; color: var(--text-2); }
+.pri { font-size: 12px; font-weight: 700; color: var(--text-2); }
+.pri.urgente { color: var(--danger); }
+.sub { margin: 14px 0 2px; font: 700 11px/1 var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--danger); }
+.late { color: var(--danger); font-weight: 700; }
+
+.projects { display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 14px; }
+.proj { border: 1px solid var(--line); border-radius: 16px; overflow: hidden; background: var(--field); }
+.cover { height: 66px; position: relative; }
+.c1 { background: linear-gradient(135deg, #4A0B0E, #B3121C); }
+.c2 { background: repeating-linear-gradient(45deg, #1E1214 0 10px, #2A1A1D 10px 20px); }
+.c3 { background: linear-gradient(135deg, #2C2F3A, #6C6F86); }
+.logo { position: absolute; left: 14px; bottom: -14px; width: 32px; height: 32px; border-radius: 9px; background: #FFFFFF; color: var(--bordo); display: grid; place-items: center; font: 900 16px/1 var(--f-display); letter-spacing: -.04em; box-shadow: 0 2px 6px rgba(0,0,0,.2); }
+.proj .body { padding: 22px 14px 14px; display: grid; gap: 8px; }
+.proj b { font-size: 14px; font-weight: 700; letter-spacing: -.01em; }
+.proj .cat { font-size: 12px; color: var(--text-2); }
+.bar { height: 6px; border-radius: 6px; background: var(--line); overflow: hidden; }
+.bar i { display: block; height: 100%; background: var(--accent-text); transition: width .45s; }
+.bar i.warn { background: var(--warn); } .bar i.bad { background: var(--danger); }
+.prog { display: flex; justify-content: space-between; font: 400 12px/1.4 var(--f-mono); color: var(--text-2); }
+.badge { display: inline-flex; align-items: center; gap: 6px; font-weight: 600; }
+.badge::before { content: ""; width: 7px; height: 7px; border-radius: 50%; background: var(--dot, var(--accent-text)); }
+
+/* Pet 3D */
+.stage3d { position: relative; height: 270px; border-radius: 18px; overflow: hidden; touch-action: pan-y;
+  background: radial-gradient(ellipse at 50% 88%, var(--accent-soft) 0 26%, transparent 27%), radial-gradient(circle at 50% 30%, rgba(255,255,255,.35), transparent 60%), linear-gradient(180deg, transparent, var(--accent-soft)); }
+.stage3d canvas { display: block; width: 100% !important; height: 100% !important; cursor: grab; }
+.stage3d canvas:active { cursor: grabbing; }
+.stage3d .fallback { position: absolute; inset: 0; display: grid; place-items: end center; padding-bottom: 6px; }
+.stage3d .fallback svg { height: 92%; width: auto; }
+.stage-hint { position: absolute; left: 12px; bottom: 10px; font: 700 10px/1 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-2); opacity: .8; pointer-events: none; }
+.bubble { position: absolute; top: 12px; left: 50%; transform: translateX(-50%); background: var(--glass-strong); border: 1px solid var(--line); border-radius: 14px; padding: 6px 12px; font-size: 13px; font-weight: 700; white-space: nowrap; box-shadow: var(--shadow); pointer-events: none; }
+.heart { position: absolute; pointer-events: none; font-size: 20px; color: var(--accent-text); animation: float 1.1s ease-out forwards; }
+@keyframes float { from { transform: translateY(0) scale(.8); opacity: 1; } to { transform: translateY(-70px) scale(1.2); opacity: 0; } }
+.pet-top { display: flex; align-items: flex-end; justify-content: space-between; gap: 10px; margin-top: 12px; flex-wrap: wrap; }
+.pet-name { font: 400 48px/.8 var(--f-script); color: var(--accent-text); }
+.pet-mood { font: 700 11px/1.2 var(--f-mono); letter-spacing: .08em; text-transform: uppercase; color: var(--text-2); margin-top: 6px; }
+.streak { text-align: right; font-size: 12px; color: var(--text-2); }
+.streak b { display: block; font: 900 26px/1 var(--f-display); letter-spacing: -.05em; color: var(--text); }
+.stats { display: grid; gap: 7px; margin: 12px 0 14px; }
+.stat { display: grid; grid-template-columns: 84px minmax(0,1fr) 44px; gap: 8px; align-items: center; font-size: 12.5px; font-weight: 600; }
+.stat span:last-child { font: 400 11px var(--f-mono); color: var(--text-2); text-align: right; }
+.tray-h { display: flex; justify-content: space-between; align-items: baseline; font: 700 11px/1 var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--text-2); margin-bottom: 8px; }
+.tray-h small { letter-spacing: 0; text-transform: none; font: 400 12px var(--f-body); }
+.tray { display: grid; grid-template-columns: repeat(5, minmax(0,1fr)); gap: 8px; }
+.food { position: relative; display: grid; justify-items: center; gap: 3px; padding: 10px 4px 8px; border: 1px solid var(--line); border-radius: 14px; background: var(--field); cursor: pointer; min-width: 0; }
+.food:hover:not(:disabled) { border-color: var(--accent-text); transform: translateY(-2px); }
+.food svg { width: 36px; height: 36px; }
+.food .fn { font-size: 11px; font-weight: 700; line-height: 1.1; text-align: center; }
+.food .fs { font-size: 10px; color: var(--text-2); line-height: 1.15; text-align: center; }
+.food .qty { position: absolute; top: 5px; right: 6px; min-width: 20px; font: 700 11px/18px var(--f-mono); background: var(--accent); color: #FFFFFF; border-radius: 99px; padding: 0 5px; }
+.food:disabled { cursor: not-allowed; }
+.food:disabled svg { filter: grayscale(1); opacity: .45; }
+.food:disabled .qty { background: var(--line); color: var(--text-2); }
+.sim { margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--line); display: flex; flex-wrap: wrap; gap: 6px; align-items: center; font-size: 11.5px; color: var(--text-2); }
+.fly { position: fixed; z-index: 60; width: 44px; height: 44px; pointer-events: none; transition: transform .65s cubic-bezier(.45,-0.35,.55,1), opacity .65s ease-in; }
+
+/* Calendário */
+.cal-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 8px; }
+.cal-head b { font: 900 20px/1 var(--f-display); letter-spacing: -.04em; text-transform: lowercase; }
+.cal-head b em { font: 400 32px/.6 var(--f-script); text-transform: none; letter-spacing: 0; color: var(--accent-text); font-style: normal; }
+.cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; text-align: center; }
+.cal .dow { font: 700 10px/2 var(--f-mono); color: var(--text-2); }
+.cal .d { position: relative; aspect-ratio: 1; display: grid; place-items: center; border-radius: 10px; font: 500 13px/1 var(--f-body); font-variant-numeric: tabular-nums; max-width: 100%; }
+.cal .d.has::after { content: ""; position: absolute; bottom: 4px; width: 5px; height: 5px; border-radius: 50%; background: var(--accent-text); }
+.cal .d.past { color: var(--text-2); opacity: .7; }
+.cal .d.today { background: var(--accent); color: #FFFFFF; font-weight: 800; }
+.cal .d.today::after { background: #FFFFFF; }
+.agenda { list-style: none; margin: 14px 0 0; padding: 12px 0 0; border-top: 1px solid var(--line); display: grid; gap: 10px; }
+.agenda li { display: grid; grid-template-columns: 56px minmax(0,1fr); gap: 10px; font-size: 14px; }
+.agenda .when { font: 700 11.5px/1.5 var(--f-mono); color: var(--accent-text); text-transform: uppercase; }
+.agenda .what b { font-weight: 700; }
+.agenda .what small { display: block; font-size: 12.5px; color: var(--text-2); }
+
+.capture { display: flex; gap: 8px; flex-wrap: wrap; }
+.capture input, .field input { flex: 1; min-width: 0; width: 100%; border: 1px solid var(--line); background: var(--field); border-radius: 12px; padding: 9px 12px; font-size: 14px; }
+.capture input { flex-basis: 180px; }
+.capture input::placeholder { color: var(--text-2); }
+.seg { display: inline-flex; border: 1px solid var(--line); border-radius: 12px; overflow: hidden; background: var(--field); }
+.seg button { border: 0; background: transparent; padding: 0 12px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--accent); color: #FFFFFF; }
+.inbox { margin-top: 10px; font-size: 13px; color: var(--text-2); }
+.kpis { display: grid; gap: 12px; }
+.kpi { display: flex; align-items: baseline; gap: 12px; }
+.kpi .n { font: 900 34px/1 var(--f-display); letter-spacing: -.05em; min-width: 74px; font-variant-numeric: tabular-nums; }
+.kpi .l { font-size: 13px; color: var(--text-2); }
+.kpi .d { font: 700 12px/1 var(--f-mono); color: var(--success); }
+
+/* Perfil */
+.prof-head h1 { margin: 0; font: 900 clamp(36px, 4.6vw, 56px)/.95 var(--f-display); letter-spacing: -.055em; text-transform: lowercase; }
+.prof-head h1 em { font: 400 calc(clamp(36px, 4.6vw, 56px) * 1.5)/.8 var(--f-script); text-transform: none; letter-spacing: 0; font-style: normal; color: var(--accent-text); }
+.prof-head p { margin: 8px 0 0; color: var(--text-2); }
+.prof { display: grid; grid-template-columns: minmax(280px, 400px) minmax(0,1fr); gap: 20px; align-items: start; }
+.preview { position: sticky; top: 80px; text-align: center; }
+.preview .stage3d { height: 400px; }
+.preview .pname { font: 400 52px/.9 var(--f-script); color: var(--accent-text); margin-top: 10px; }
+.pfp-big { width: 76px; height: 76px; border-radius: 50%; overflow: hidden; margin: 10px auto 0; border: 3px solid var(--accent-text); background: #F6D9DD; }
+.moods { display: flex; flex-wrap: wrap; justify-content: center; gap: 6px; margin-top: 12px; }
+.opts { display: grid; gap: 16px; }
+.opt h3 { margin: 0 0 10px; font: 700 11px/1 var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--text-2); }
+.chips { display: flex; flex-wrap: wrap; gap: 8px; }
+.chip { border: 1px solid var(--line); background: var(--field); border-radius: 99px; padding: 6px 14px; font-size: 13px; font-weight: 600; cursor: pointer; }
+.chip:hover { border-color: var(--accent-text); }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: #FFFFFF; }
+.sw { width: 34px; height: 34px; border-radius: 50%; border: 2px solid var(--glass-border); cursor: pointer; box-shadow: 0 0 0 1px var(--line); }
+.sw[aria-pressed="true"] { box-shadow: 0 0 0 3px var(--accent-text); }
+.row2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; }
+.field label { display: block; font: 700 11px/1 var(--f-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--text-2); margin-bottom: 8px; }
+.toggle { display: flex; align-items: center; gap: 10px; font-size: 14px; cursor: pointer; }
+.toggle input { width: 18px; height: 18px; accent-color: var(--accent); }
+.save-bar { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.hint { font-size: 12px; color: var(--text-2); }
+.toast { position: fixed; right: max(20px, env(safe-area-inset-right, 0px)); bottom: max(20px, env(safe-area-inset-bottom, 0px)); z-index: 70; background: var(--accent); color: #FFFFFF; padding: 10px 16px; border-radius: 12px; font-weight: 700; font-size: 14px; box-shadow: var(--shadow); max-width: calc(100vw - 40px); }
+
+@media (max-width: 1180px) { .grid { grid-template-columns: minmax(0,1fr); } }
+@media (max-width: 900px) { .prof { grid-template-columns: minmax(0,1fr); } .preview { position: static; } .preview .stage3d { height: 340px; } }
+@media (max-width: 1023px) {
+  :root, :root[data-side="collapsed"] { --side-w: 0px; --scale: .75; }
+  .app { grid-template-columns: minmax(0,1fr); }
+  .side { position: fixed; left: 0; top: 0; bottom: 0; width: 272px; transform: translateX(-105%); transition: transform .22s ease; }
+  :root[data-drawer="open"] .side { transform: none; }
+  :root[data-drawer="open"] .backdrop { display: block; position: fixed; inset: 0; z-index: 15; background: rgba(14,9,10,.45); }
+  :root[data-side="collapsed"] .side .lbl, :root[data-side="collapsed"] .brand-txt, :root[data-side="collapsed"] .side .label, :root[data-side="collapsed"] .count { display: revert; }
+  .icon-btn.collapse { display: none; }
+  .menu-btn { display: inline-flex; }
+}
+@media (max-width: 640px) {
+  :root, :root[data-side="collapsed"] { --scale: .5; }
+  .topbar, .content { padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px)); }
+  .search { width: auto; flex: 1; } .search kbd, .search .s-txt, .crumb, .tb-btn .lbl, .capture-btn .lbl { display: none; }
+  .collage .m-hide { display: none; }
+  .hello { padding: 18px; }
+  .tray { grid-template-columns: repeat(3, minmax(0,1fr)); }
+}
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation: none !important; transition: none !important; } }
+</style>
+
+<div class="collage" aria-hidden="true">
+  <img src="stickers/loser.png" alt="" style="--w:330px; --r:-6deg; top:9%; left:20%;">
+  <img src="stickers/estrelas-trilha.png" alt="" class="m-hide" style="--w:250px; --r:-16deg; top:-6%; left:41%;">
+  <img src="stickers/lirio.png" alt="" style="--w:270px; --r:-8deg; top:2%; left:60%;">
+  <img src="stickers/boneco-capuz.png" alt="" style="--w:290px; --r:8deg; top:6%; right:1%;">
+  <img src="stickers/kanji-textura.png" alt="" style="--w:300px; --r:6deg; top:30%; left:16%;">
+  <img src="stickers/cereja-8.png" alt="" class="m-hide" style="--w:200px; --r:-12deg; top:24%; left:44%;">
+  <img src="stickers/tribal-coracao.png" alt="" class="m-hide" style="--w:200px; --r:9deg; top:28%; right:21%;">
+  <img src="stickers/espiral.png" alt="" class="m-hide" style="--w:200px; --r:14deg; top:46%; left:2%;">
+  <img src="stickers/olhos.png" alt="" style="--w:300px; --r:-10deg; top:60%; left:23%;">
+  <img src="stickers/estrela.png" alt="" class="m-hide" style="--w:280px; --r:-14deg; top:52%; left:50%;">
+  <img src="stickers/silhueta.png" alt="" class="m-hide" style="--w:220px; --r:18deg; top:56%; right:24%;">
+  <img src="stickers/estrela-espiral.png" alt="" style="--w:250px; --r:14deg; bottom:3%; left:42%;">
+  <img src="stickers/cerejas-laco.png" alt="" style="--w:300px; --r:-9deg; bottom:-2%; left:12%;">
+  <img src="stickers/leopardo.png" alt="" style="--w:330px; --r:-7deg; bottom:-5%; right:3%;">
+</div>
+<div class="grain" aria-hidden="true"></div>
+<div class="backdrop" id="backdrop"></div>
+
+<div class="app">
+  <aside class="side" id="side" aria-label="Menu principal">
+    <div class="side-head">
+      <a class="brand" href="#inicio" aria-label="Annalu Studio OS, ir para o início">
+        <img src="stickers/cereja-8.png" alt="">
+        <span class="brand-txt"><span class="script">Annalu</span><span class="grot">studio os</span></span>
+      </a>
+      <button class="icon-btn collapse" id="btn-collapse" type="button" aria-label="Recolher menu" aria-expanded="true" aria-controls="side" title="Recolher menu"><svg viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg></button>
+    </div>
+    <nav>
+      <ul>
+        <li><a href="#inicio" data-view="inicio" title="Início"><svg viewBox="0 0 24 24"><path d="M3 10.5 12 3l9 7.5V20a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/></svg><span class="lbl">Início</span></a></li>
+        <li><a href="#inicio" title="Projetos"><svg viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 9h18"/></svg><span class="lbl">Projetos</span></a></li>
+        <li><a href="#inicio" title="Tarefas"><svg viewBox="0 0 24 24"><path d="m4 12 4 4L20 6"/></svg><span class="lbl">Tarefas</span></a></li>
+        <li><a href="#inicio" title="Calendário"><svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="16" rx="2"/><path d="M8 3v4M16 3v4M3 10h18"/></svg><span class="lbl">Calendário</span></a></li>
+        <li><a href="#inicio" title="Notas"><svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M9 12h7M9 16h5"/></svg><span class="lbl">Notas</span><span class="count">3</span></a></li>
+        <li><a href="#inicio" title="Idea Lab"><svg viewBox="0 0 24 24"><path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/></svg><span class="lbl">Idea Lab</span></a></li>
+        <li><a href="#inicio" title="Arquivos"><svg viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="lbl">Arquivos</span></a></li>
+        <li><a href="#inicio" title="Clientes"><svg viewBox="0 0 24 24"><circle cx="9" cy="8" r="4"/><path d="M2 21c0-4 3-6 7-6s7 2 7 6M17 4a4 4 0 0 1 0 8M22 21c0-3-1.5-5-4-5.7"/></svg><span class="lbl">Clientes</span></a></li>
+        <li><a href="#inicio" title="Relatórios"><svg viewBox="0 0 24 24"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span class="lbl">Relatórios</span></a></li>
+        <li><a href="#perfil" data-view="perfil" title="Perfil e avatar"><svg viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4.5 3.5-7 8-7s8 2.5 8 7"/></svg><span class="lbl">Perfil e avatar</span></a></li>
+      </ul>
+    </nav>
+    <div>
+      <div class="label">Fixados</div>
+      <nav><ul>
+        <li><a href="#inicio" title="Annalu Studio OS"><svg viewBox="0 0 24 24"><path d="m12 3 2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg><span class="lbl">Annalu Studio OS</span></a></li>
+        <li><a href="#inicio" title="Site institucional"><svg viewBox="0 0 24 24"><path d="m12 3 2.6 5.6 6 .7-4.5 4.1 1.2 6L12 16.4 6.7 19.4l1.2-6L3.4 9.3l6-.7z"/></svg><span class="lbl">Site institucional</span></a></li>
+      </ul></nav>
+    </div>
+    <a class="user" href="#perfil" title="Perfil e avatar"><span class="pfp" data-pfp></span><span class="lbl"><span data-display-name>Annalu</span><small>ver perfil</small></span></a>
+  </aside>
+
+  <div class="main">
+    <header class="topbar glass">
+      <button class="tb-btn menu-btn" id="btn-menu" type="button" aria-label="Abrir menu" aria-expanded="false" aria-controls="side"><svg viewBox="0 0 24 24"><path d="M4 7h16M4 12h16M4 17h16"/></svg></button>
+      <span class="crumb" id="crumb">Início</span>
+      <div class="search" role="search"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg><span class="s-txt">Buscar projetos, tarefas, notas…</span><kbd>Ctrl K</kbd></div>
+      <div style="position:relative">
+        <button class="tb-btn" id="btn-colagem" type="button" aria-haspopup="true" aria-expanded="false" aria-controls="pop-colagem" title="Colagem do fundo"><svg viewBox="0 0 24 24"><path d="M5 4h10l4 4v12H5z"/><path d="M15 4v4h4"/><circle cx="10" cy="12" r="2"/><path d="m5 19 5-4 3 2 3-3 3 3"/></svg><span class="lbl">Colagem</span></button>
+        <div class="popover" id="pop-colagem" role="menu" aria-label="Intensidade da colagem" hidden>
+          <div class="ph">Colagem do fundo</div>
+          <button type="button" role="menuitemradio" data-colagem="off">Desligada <small>só a cor</small></button>
+          <button type="button" role="menuitemradio" data-colagem="sutil">Sutil</button>
+          <button type="button" role="menuitemradio" data-colagem="presente">Presente</button>
+          <button type="button" role="menuitemradio" data-colagem="total">Total</button>
+        </div>
+      </div>
+      <button class="tb-btn" id="btn-tema" type="button" aria-label="Mudar para modo escuro" title="Modo claro / escuro"><svg viewBox="0 0 24 24" id="ico-tema"><path d="M20 14.5A8 8 0 0 1 9.5 4 8 8 0 1 0 20 14.5z"/></svg></button>
+      <button class="btn btn-primary capture-btn" type="button"><span aria-hidden="true">+</span><span class="lbl">Capturar</span></button>
+      <a class="tb-pfp" href="#perfil" aria-label="Perfil e avatar" data-pfp></a>
+    </header>
+
+    <!-- ============ INÍCIO ============ -->
+    <main class="content" id="view-inicio">
+      <div class="proto"><strong>Protótipo visual.</strong> Tarefas, projetos e números são ilustrativos. O pet reage a eles como reagiria aos seus dados reais.</div>
+
+      <section class="hello glass">
+        <div class="date">terça-feira, 10/11/2026</div>
+        <h1>Boa tarde, <em data-display-name>Annalu</em>.</h1>
+        <p><b id="sum-today">3 tarefas</b> para hoje · <b id="sum-late">2 atrasadas</b> · próxima entrega em <b>3 dias</b></p>
+      </section>
+
+      <div class="grid">
+        <div class="col">
+          <section class="card glass" aria-labelledby="h-hoje">
+            <h2 id="h-hoje">Hoje<a href="#inicio">Todas as tarefas</a></h2>
+            <ul class="tasks" id="list-today"></ul>
+            <div class="sub" id="late-title">Atrasadas · 2</div>
+            <ul class="tasks" id="list-late"></ul>
+          </section>
+
+          <section class="card glass" aria-labelledby="h-cal">
+            <h2 id="h-cal">Calendário<a href="#inicio">Abrir</a></h2>
+            <div class="cal-head"><b><em>Novembro</em> 2026</b><span class="crumb">semana 46</span></div>
+            <div class="cal" id="cal"></div>
+            <ul class="agenda">
+              <li><span class="when">Hoje<br>14:00</span><span class="what"><b>Reunião de alinhamento</b><small>Loja Ateliê · reunião</small></span></li>
+              <li><span class="when">Qua<br>11/11</span><span class="what"><b>Marco: Beta interno</b><small>Annalu Studio OS</small></span></li>
+              <li><span class="when">Sex<br>13/11</span><span class="what"><b>Entrega: Site institucional</b><small>Cliente</small></span></li>
+            </ul>
+          </section>
+
+          <section class="card glass" aria-labelledby="h-proj">
+            <h2 id="h-proj">Projetos ativos<a href="#inicio">Ver todos</a></h2>
+            <div class="projects">
+              <article class="proj"><div class="cover c1"><span class="logo">A</span></div><div class="body"><b>Annalu Studio OS</b><span class="cat">Produto próprio · <span class="badge">Em andamento</span></span><div class="bar"><i style="width:18%"></i></div><div class="prog"><span>18%</span><span>7 de 39</span></div></div></article>
+              <article class="proj"><div class="cover c2"><span class="logo">S</span></div><div class="body"><b>Site institucional</b><span class="cat">Cliente · <span class="badge">Em andamento</span></span><div class="bar"><i style="width:62%"></i></div><div class="prog"><span>62%</span><span>entrega 13/11</span></div></div></article>
+              <article class="proj"><div class="cover c3"><span class="logo">H</span></div><div class="body"><b>App de hábitos</b><span class="cat">Pessoal · <span class="badge" style="--dot: var(--info)">Planejamento</span></span><div class="bar"><i style="width:0"></i></div><div class="prog"><span>Sem tarefas</span><span></span></div></div></article>
+            </div>
+          </section>
+        </div>
+
+        <div class="col">
+          <section class="card glass" aria-labelledby="h-pet" id="pet-card">
+            <h2 id="h-pet">Seu pet<a href="#perfil">Personalizar</a></h2>
+            <div class="stage3d" id="pet-stage" role="img" aria-label="Pet"><span class="bubble" id="bubble" hidden></span><span class="stage-hint" id="stage-hint">arraste para girar · toque para carinho</span></div>
+            <div class="pet-top">
+              <div><div class="pet-name" data-pet-name>Cereja</div><div class="pet-mood" id="pet-mood">tranquila</div></div>
+              <div class="streak"><b id="streak">2</b>dias seguidos<br><span id="last-meal">última refeição: ontem, 21:10</span></div>
+            </div>
+            <div class="stats">
+              <div class="stat"><span>Saciedade</span><div class="bar"><i id="st-sac"></i></div><span id="st-sac-v"></span></div>
+              <div class="stat"><span>Humor</span><div class="bar"><i id="st-humor"></i></div><span id="st-humor-v"></span></div>
+              <div class="stat"><span>Nível</span><div class="bar"><i id="st-xp"></i></div><span id="st-nivel"></span></div>
+            </div>
+            <div class="tray-h">Lancheira <small>toque numa comida para alimentar</small></div>
+            <div class="tray" id="tray"></div>
+            <div class="sim"><span>Simular (protótipo):</span>
+              <button class="btn btn-ghost btn-sm" type="button" data-sim="torta">Marco concluído</button>
+              <button class="btn btn-ghost btn-sm" type="button" data-sim="bolo">Projeto concluído</button>
+              <button class="btn btn-ghost btn-sm" type="button" data-sim="tempo">Passar 6 horas</button>
+            </div>
+          </section>
+
+          <section class="card glass" aria-labelledby="h-cap">
+            <h2 id="h-cap">Captura rápida</h2>
+            <form class="capture" id="capture">
+              <span class="seg" role="group" aria-label="Tipo"><button type="button" data-kind="nota" aria-pressed="true">Nota</button><button type="button" data-kind="ideia" aria-pressed="false">Ideia</button></span>
+              <input id="cap-in" placeholder="Escreva algo e pressione Enter" aria-label="Texto da captura">
+              <button class="btn btn-primary" type="submit">Salvar</button>
+            </form>
+            <div class="inbox" id="inbox">Inbox: 3 notas · salvar uma ideia rende um cupcake para o pet</div>
+          </section>
+
+          <section class="card glass" aria-labelledby="h-kpi">
+            <h2 id="h-kpi">Últimos 7 dias</h2>
+            <div class="kpis">
+              <div class="kpi"><span class="n" id="kpi-done">12</span><span class="l">tarefas concluídas</span><span class="d">+3</span></div>
+              <div class="kpi"><span class="n">86%</span><span class="l">entregues no prazo (30 dias)</span></div>
+              <div class="kpi"><span class="n" id="kpi-late">2</span><span class="l">tarefas atrasadas</span></div>
+            </div>
+          </section>
+        </div>
+      </div>
+    </main>
+
+    <!-- ============ PERFIL ============ -->
+    <main class="content" id="view-perfil" hidden>
+      <section class="prof-head hello glass">
+        <div class="date">Perfil</div>
+        <h1>crie sua <em>boneca</em></h1>
+        <p>Ela vira sua foto de perfil e o pet 3D do Dashboard.</p>
+      </section>
+
+      <div class="prof">
+        <section class="card glass preview" aria-label="Pré-visualização">
+          <div class="stage3d" id="prev-stage" role="img" aria-label="Pré-visualização do avatar em 3D"><span class="stage-hint">arraste para girar</span></div>
+          <div class="pname" data-pet-name>Cereja</div>
+          <div class="pfp-big" data-pfp aria-label="Foto de perfil"></div>
+          <div class="moods" role="group" aria-label="Ver humores do pet">
+            <button class="chip" type="button" data-mood="">Normal</button>
+            <button class="chip" type="button" data-mood="feliz">Feliz</button>
+            <button class="chip" type="button" data-mood="faminta">Com fome</button>
+            <button class="chip" type="button" data-mood="preocupada">Preocupada</button>
+            <button class="chip" type="button" data-mood="sonolenta">Sonolenta</button>
+          </div>
+        </section>
+
+        <div class="opts">
+          <section class="card glass">
+            <div class="row2">
+              <div class="field"><label for="in-nome">Nome de exibição</label><input id="in-nome" value="Annalu" maxlength="24"></div>
+              <div class="field"><label for="in-pet">Nome do pet</label><input id="in-pet" value="Cereja" maxlength="16"></div>
+            </div>
+            <div style="margin-top:14px"><label class="toggle"><input type="checkbox" id="in-showpet" checked> Mostrar o pet no Dashboard</label></div>
+          </section>
+          <section class="card glass opt"><h3>Formato do corpo</h3><div class="chips" data-key="bodyShape"></div><h3 style="margin-top:14px">Silhueta</h3><div class="chips" data-key="bodySize"></div><h3 style="margin-top:14px">Pele</h3><div class="chips" data-key="skin"></div></section>
+          <section class="card glass opt"><h3>Cabelo</h3><div class="chips" data-key="hair"></div><h3 style="margin-top:14px">Franja</h3><div class="chips" data-key="bangs"></div><h3 style="margin-top:14px">Cor do cabelo</h3><div class="chips" data-key="hairColor"></div><h3 style="margin-top:14px">Mechas</h3><div class="chips" data-key="streaks"></div><h3 style="margin-top:14px">Cor das mechas</h3><div class="chips" data-key="streakColor"></div></section>
+          <section class="card glass opt"><h3>Detalhes do rosto</h3><div class="chips" data-key="face"></div><h3 style="margin-top:14px">Olhos</h3><div class="chips" data-key="eyes"></div><h3 style="margin-top:14px">Cor dos olhos</h3><div class="chips" data-key="eyeColor"></div><h3 style="margin-top:14px">Sobrancelha</h3><div class="chips" data-key="brows"></div><h3 style="margin-top:14px">Boca</h3><div class="chips" data-key="mouth"></div></section>
+          <section class="card glass opt"><h3>Roupa</h3><div class="chips" data-key="outfit"></div><h3 style="margin-top:14px">Cor da roupa</h3><div class="chips" data-key="outfitColor"></div><h3 style="margin-top:14px">Pernas</h3><div class="chips" data-key="legs"></div><h3 style="margin-top:14px">Sapatos</h3><div class="chips" data-key="shoes"></div></section>
+          <section class="card glass opt"><h3>Metal das joias</h3><div class="chips" data-key="metal"></div><h3 style="margin-top:14px">Acessórios</h3><div class="chips" data-key="acc"></div></section>
+          <div class="save-bar">
+            <button class="btn btn-primary" id="btn-save" type="button">Salvar perfil</button>
+            <button class="btn btn-ghost" id="btn-random" type="button">Surpreenda-me</button>
+            <span class="hint">No protótipo, salva só neste navegador.</span>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="app.js"></script>
