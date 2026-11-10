@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
+import { describe, expect, it } from "vitest";
 
 /**
  * Contraste dos tokens (WCAG 2.2 AA): texto normal ≥ 4,5:1.

@@ -7,7 +7,7 @@
   "license": "UNLICENSED",
   "type": "module",
   "scripts": {
-    "build": "prisma generate && nest build",
+    "build": "nest build",
     "deploy": "nest deploy",
     "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
     "start": "nest start",
@@ -15,19 +15,20 @@
     "start:debug": "nest start --debug --watch",
     "start:prod": "node dist/main.js",
     "lint": "oxlint --type-aware src/ test/",
-    "test": "prisma generate && vitest run && vitest run --config ./vitest.config.e2e.ts",
+    "test": "vitest run && vitest run --config ./vitest.config.e2e.ts",
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
     "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
-    "typecheck": "prisma generate && tsc --noEmit -p tsconfig.json",
+    "typecheck": "tsc --noEmit -p tsconfig.json",
     "dev": "nest start --watch",
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:studio": "prisma studio",
     "test:int": "prisma generate && vitest run --config ./vitest.config.int.ts",
-    "worker": "node dist/worker.js"
+    "worker": "node dist/worker.js",
+    "generate": "prisma generate"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
