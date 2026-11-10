@@ -39,6 +39,35 @@ jobs:
       - name: Auditoria de dependências (falha em severidade alta)
         run: pnpm audit --prod --audit-level=high
 
+  integracao:
+    name: Testes de integração (MySQL)
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      mysql:
+        image: mysql:8.4
+        env:
+          MYSQL_ROOT_PASSWORD: root_ci
+          MYSQL_DATABASE: studio_test
+        ports:
+          - 3306:3306
+        options: >-
+          --health-cmd="mysqladmin ping -h 127.0.0.1 -uroot -proot_ci"
+          --health-interval=5s --health-timeout=3s --health-retries=30
+    env:
+      TEST_DATABASE_URL: mysql://root:root_ci@127.0.0.1:3306/studio_test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+      - run: pnpm install --frozen-lockfile
+      - run: pnpm turbo run build --filter=@studio/contracts
+      - name: Testes de integração da API
+        run: pnpm --filter @studio/api test:int
+
   segredos:
     name: Varredura de segredos
     runs-on: ubuntu-latest

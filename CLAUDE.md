@@ -19,8 +19,9 @@ Centro de comando digital da **Dev Annalu** (gestão de projetos, escopo, tarefa
 
 ## Estado atual (10/11/2026)
 - Fase 0 documentada; protótipo visual aprovado em partes (`design/dashboard-colagem.html` + `design/app.js`).
-- **M1 — Fundação em andamento:** monorepo pnpm + Turborepo (`apps/web`, `apps/api`, `packages/contracts`), API com config validada, erros problem+json, logs seguros e health check; web com tokens do design system; Prisma 7 com schema inicial; Docker Compose; CI.
-- Pendente no M1: primeira migração e fila de jobs (exigem Docker Desktop ligado), primitivos de UI (E3-2).
+- **M1 — Fundação:** épico E0 concluído (monorepo, API base, web com tokens, Prisma 7 com migração inicial, fila de jobs + worker, Docker Compose com MySQL na porta 3307, CI). Branch `feat/m1-fundacao`.
+- Pendente no M1: primitivos de UI e layout (E3-2, E3-3), página `/design` interna.
+- Testes: `pnpm turbo run build typecheck test lint` (sem banco) e `pnpm --filter @studio/api test:int` (MySQL real, banco `studio_test`).
 - Pet 3D no Blender pausado (D-28).
 
 ## Ferramentas e versões (ver D-29)

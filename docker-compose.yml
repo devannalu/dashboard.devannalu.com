@@ -1,5 +1,8 @@
 # Serviços de desenvolvimento local (NÃO usar em produção).
 # Subir: pnpm db:up   ·   Derrubar: pnpm db:down   ·   Dados persistem nos volumes nomeados.
+#
+# Armazenamento S3 local: a imagem pública do MinIO foi descontinuada. A escolha do substituto
+# (ex.: SeaweedFS ou Garage) fica para o épico de arquivos (E11) — ver registro de decisões, Q28.
 name: annalu-studio-os
 
 services:
@@ -13,28 +16,14 @@ services:
       MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-root_dev}
     command: ["--character-set-server=utf8mb4", "--collation-server=utf8mb4_0900_ai_ci"]
     ports:
-      - "127.0.0.1:3306:3306"   # só na máquina local
+      - "127.0.0.1:${MYSQL_PORT:-3307}:3306"   # só na máquina local (3307 para não conflitar com outros projetos)
     volumes:
       - mysql-data:/var/lib/mysql
     healthcheck:
       test: ["CMD", "mysqladmin", "ping", "-h", "127.0.0.1", "-uroot", "-p${MYSQL_ROOT_PASSWORD:-root_dev}"]
       interval: 5s
       timeout: 3s
-      retries: 20
-
-  minio:
-    image: minio/minio:latest
-    restart: unless-stopped
-    command: server /data --console-address ":9001"
-    environment:
-      MINIO_ROOT_USER: ${MINIO_ROOT_USER:-studio}
-      MINIO_ROOT_PASSWORD: ${MINIO_ROOT_PASSWORD:-studio_dev_123}
-    ports:
-      - "127.0.0.1:9000:9000"   # API S3
-      - "127.0.0.1:9001:9001"   # painel web do MinIO
-    volumes:
-      - minio-data:/data
+      retries: 30
 
 volumes:
   mysql-data:
-  minio-data:

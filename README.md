@@ -20,14 +20,14 @@ docs/           PRD, arquitetura, modelo de dados, backlog, decisões
 
 - Node.js 24 (`.nvmrc`)
 - pnpm 12 (`npm install -g pnpm@12`)
-- Docker Desktop (MySQL e MinIO locais)
+- Docker Desktop (MySQL local na porta **3307**, para não conflitar com outros projetos)
 
 ## Primeiros passos
 
 ```bash
 pnpm install
 cp .env.example .env          # ajuste se precisar (nunca versionar o .env)
-pnpm db:up                    # sobe MySQL e MinIO no Docker
+pnpm db:up                    # sobe o MySQL no Docker
 pnpm --filter @studio/api db:migrate   # cria as tabelas
 pnpm dev                      # web + API em modo desenvolvimento
 ```
@@ -39,6 +39,8 @@ pnpm dev                      # web + API em modo desenvolvimento
 | `pnpm dev` | Sobe web e API com recarga automática |
 | `pnpm build` | Compila tudo (gera o cliente Prisma antes) |
 | `pnpm test` | Testes unitários e e2e |
+| `pnpm --filter @studio/api test:int` | Testes de integração com MySQL real (banco `studio_test`) |
+| `pnpm --filter @studio/api worker` | Processo que executa a fila de jobs (após o build) |
 | `pnpm typecheck` / `pnpm lint` | Verificação de tipos e lint |
 | `pnpm db:up` / `pnpm db:down` | Liga/desliga os serviços do Docker |
 | `pnpm --filter @studio/api db:studio` | Abre o Prisma Studio para inspecionar o banco |

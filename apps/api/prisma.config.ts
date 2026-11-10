@@ -10,5 +10,8 @@ export default defineConfig({
   schema: "prisma/schema.prisma",
   migrations: { path: "prisma/migrations" },
   // Sem DATABASE_URL, comandos que não acessam o banco (ex.: generate) continuam funcionando.
-  datasource: { url: process.env.DATABASE_URL ?? "mysql://nao-configurado@localhost:3306/nao-configurado" },
+  datasource: {
+    url: process.env.DATABASE_URL ?? "mysql://nao-configurado@localhost:3306/nao-configurado",
+    shadowDatabaseUrl: process.env.SHADOW_DATABASE_URL,
+  },
 });

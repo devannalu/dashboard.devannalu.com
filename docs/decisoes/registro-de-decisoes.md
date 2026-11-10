@@ -101,6 +101,7 @@ Prioridade: 🔴 bloqueia o início do desenvolvimento · 🟡 bloqueia um marco
 | ~~Q26~~ | ✅ | Pet sem comer por dias | **Respondida em 10/11/2026:** aprovada a proposta → D-27 |
 | Q27 | ⚪ | O nível do pet deve liberar roupas e acessórios novos para o avatar? | Sim, na Fase 3 (liga com a Q25) |
 | Q25 | ⚪ | O avatar deve ter só o rosto e o corpo atuais, ou crescer depois com roupas e itens desbloqueáveis por nível? | Itens desbloqueáveis por nível na Fase 3 |
+| Q28 | 🟡 M7 | A imagem pública do MinIO foi descontinuada. Qual armazenamento S3 usar em desenvolvimento local? | SeaweedFS ou Garage (compatíveis com S3, código aberto). Decidir no épico de arquivos (E11). Em produção segue a Q4 (R2/B2) |
 | Q22 | 🟡 M2 | Qual é o tom exato de bordô? A imagem de referência enviada chegou vazia (arquivo transparente). | Usando `#7E1414`, tirado das estrelas da colagem, até a owner reenviar |
 | Q23 | ⚪ | Licenciar fontes pagas (Onehart ou similar) ou ficar com as gratuitas do Google Fonts? | Decidir depois de aprovar a mistura na prévia |
 | Q21 | 🟡 M9 | A colagem aparece só no Dashboard e nas telas de respiro, ou também em outras telas? | Só Dashboard, estados vazios e login |
@@ -116,4 +117,5 @@ Prioridade: 🔴 bloqueia o início do desenvolvimento · 🟡 bloqueia um marco
 | 10/11/2026 | Owner respondeu a Q24 (alimentação diária) e pediu pet 3D, mais opções de avatar e tipos de corpo (D-25, D-26). Prévia v5 publicada: pet em Three.js, lancheira com 5 comidas e olho sonolento e tranças corrigidos. |
 | 10/11/2026 | Owner aprovou o estado "fraquinha" para pet sem comer (D-27); estado incluído na prévia. |
 | 10/11/2026 | Pet 3D migrado para o Blender e pausado (D-28). Início do M1: monorepo, web, API, contratos, Prisma, Docker Compose e CI (D-29). |
+| 10/11/2026 | Épico E0 concluído: migração inicial aplicada, fila de jobs com testes de integração em MySQL real, worker, CI com MySQL. MySQL local na porta 3307 (3306 e 3310 ocupadas por outros projetos). MinIO removido do compose (Q28). |
 | 10/11/2026 | Owner pediu a camada de colagem (D-13). Adesivos gerados e prévia do Dashboard publicada para aprovação visual. |
