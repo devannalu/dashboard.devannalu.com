@@ -37,7 +37,7 @@ Tratadas como aprovadas. Mudanças exigem decisão explícita da owner.
 | D-27 | (10/11/2026) **Pet sem comer:** com saciedade em 0, fica "fraquinha" e dormindo. **Nunca morre e nunca perde nível, XP, comidas ou personalização.** Uma refeição qualquer a acorda e ela volta ao normal. A sequência de dias alimentando zera, como em qualquer sequência |
 | D-28 | (10/11/2026) **Pet 3D refeito no Blender** (script `design/blender/boneca.py`, renders em `design/blender/saida/`). Rodada 8 concluída; **pausado a pedido da owner** para priorizar a aplicação. Retomar antes do épico E19 |
 | D-29 | (10/11/2026) **Versões adotadas no M1** (validação da stack, D-03): Next.js 16.4, React 19.3, NestJS 12 (ESM, validação nativa com Zod), Prisma 7.10 com adaptador `@prisma/adapter-mariadb` (MySQL), TypeScript 6, Zod 4, pnpm 12, Turborepo 2, Vitest 4. O Prisma 8 (release candidate) foi evitado por não ser estável |
-| D-30 | (10/11/2026) **Domínio de produção: studio.devannalu.com** (decisão da owner no deploy). Hospedagem: VPS própria com Coolify (responde à Q3) |
+| D-30 | (10/11/2026) **Domínio de produção: annalustudio.devannalu.com** (decisão da owner no deploy). Hospedagem: VPS própria com Coolify (responde à Q3) |
 | D-19 | (10/11/2026) **Login só com e-mail e senha**, sem 2FA no MVP. A conta da owner é pré-configurada pelo e-mail (variável `OWNER_EMAIL`, fora do repositório) e a senha é definida no primeiro acesso. Substitui ADR-014 |
 
 ## 2. Propostas aguardando aprovação (ADRs resumidos)
@@ -79,7 +79,7 @@ Prioridade: 🔴 bloqueia o início do desenvolvimento · 🟡 bloqueia um marco
 | ID | Pri. | Questão | Proposta do agente |
 |---|---|---|---|
 | ~~Q1~~ | ✅ | Nome oficial | **Respondida em 10/11/2026:** "Annalu" (Annalu Studio OS / Dev Annalu) → D-14 |
-| ~~Q2~~ | ✅ | Domínio de produção | **Respondida em 10/11/2026:** `studio.devannalu.com` → D-30 |
+| ~~Q2~~ | ✅ | Domínio de produção | **Respondida em 10/11/2026:** `annalustudio.devannalu.com` → D-30 |
 | Q3 | 🟡 M10 | Preferência de hospedagem e orçamento mensal? Dados devem ficar no Brasil? | VPS com Docker (aprox. R$ 30–100/mês) + R2/B2 |
 | Q4 | 🟡 M7 | Provedor de storage: Cloudflare R2, Backblaze B2, AWS S3 ou outro? | Cloudflare R2 |
 | ~~Q5~~ | ✅ | Método de login | **Respondida em 10/11/2026:** só e-mail e senha → D-19 |
@@ -118,6 +118,6 @@ Prioridade: 🔴 bloqueia o início do desenvolvimento · 🟡 bloqueia um marco
 | 10/11/2026 | Owner respondeu a Q24 (alimentação diária) e pediu pet 3D, mais opções de avatar e tipos de corpo (D-25, D-26). Prévia v5 publicada: pet em Three.js, lancheira com 5 comidas e olho sonolento e tranças corrigidos. |
 | 10/11/2026 | Owner aprovou o estado "fraquinha" para pet sem comer (D-27); estado incluído na prévia. |
 | 10/11/2026 | Pet 3D migrado para o Blender e pausado (D-28). Início do M1: monorepo, web, API, contratos, Prisma, Docker Compose e CI (D-29). |
-| 10/11/2026 | Deploy no Coolify (VPS própria): MySQL 8.4 e API no ar com migração aplicada. Domínio trocado para studio.devannalu.com (D-30). |
+| 10/11/2026 | Deploy no Coolify (VPS própria): MySQL 8.4 e API no ar com migração aplicada. Domínio trocado para annalustudio.devannalu.com (D-30). |
 | 10/11/2026 | Épico E0 concluído: migração inicial aplicada, fila de jobs com testes de integração em MySQL real, worker, CI com MySQL. MySQL local na porta 3307 (3306 e 3310 ocupadas por outros projetos). MinIO removido do compose (Q28). |
 | 10/11/2026 | Owner pediu a camada de colagem (D-13). Adesivos gerados e prévia do Dashboard publicada para aprovação visual. |
