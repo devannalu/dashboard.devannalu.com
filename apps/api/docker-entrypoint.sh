@@ -13,14 +13,19 @@ case "$DATABASE_URL" in
     echo "[Annalu Studio OS] DATABASE_URL começa com aspas. Remova as aspas do valor."
     exit 1
     ;;
+  *" "*)
+    echo "[Annalu Studio OS] DATABASE_URL contém espaço. Confira se nenhum texto extra foi colado junto (início ou fim do valor)."
+    exit 1
+    ;;
   mysql://*)
     ;;
   *)
     echo "[Annalu Studio OS] DATABASE_URL não começa com mysql://."
-    echo "  Confira se não há espaço no início ou o texto 'DATABASE_URL=' repetido dentro do valor."
+    echo "  Confira se o texto 'DATABASE_URL=' não foi repetido dentro do valor."
     exit 1
     ;;
 esac
 
-pnpm exec prisma migrate deploy
+# CLI do Prisma chamado direto (sem pnpm/corepack: não baixa nada da internet a cada inicialização).
+./node_modules/.bin/prisma migrate deploy
 exec node dist/main.js
