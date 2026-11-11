@@ -13,6 +13,7 @@ export const NATURAL_SIZE: Record<WidgetId, WidgetSize> = {
   agora: "sm",
   captura: "sm",
   notas: "sm",
+  pet: "md",
 };
 
 interface Item {

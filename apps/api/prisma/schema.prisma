@@ -48,6 +48,8 @@ model Workspace {
   notes      Note[]
   ideas      Idea[]
   files      StoredFile[]
+  pets       PetState[]
+  petAwards  PetAward[]
   createdAt DateTime          @default(now()) @db.DateTime(3)
   updatedAt DateTime          @updatedAt @db.DateTime(3)
 }
@@ -67,6 +69,7 @@ model User {
   lastLoginAt     DateTime?         @db.DateTime(3)
   memberships    WorkspaceMember[]
   sessions        Session[]
+  pets            PetState[]
   createdAt       DateTime          @default(now()) @db.DateTime(3)
   updatedAt       DateTime          @updatedAt @db.DateTime(3)
 }
@@ -347,4 +350,44 @@ model StoredFile {
 
   @@index([workspaceId, createdAt])
   @@index([projectId])
+}
+
+/// Pet tamagotchi do Início (D-25, D-27, D-42). Um por usuária em cada workspace.
+/// Saciedade guarda o valor no instante `satietyAt`; o valor atual cai ~4 pontos/hora (calculado na leitura).
+model PetState {
+  id          String    @id @default(cuid())
+  workspaceId String
+  userId      String
+  name        String    @default("Cereja") @db.VarChar(40)
+  satiety     Float     @default(60)
+  satietyAt   DateTime  @default(now()) @db.DateTime(3)
+  xp          Int       @default(0)
+  streak      Int       @default(0)
+  /// Último dia (aaaa-mm-dd, fuso da usuária) com pelo menos uma refeição.
+  lastFedDay  String?   @db.VarChar(10)
+  pettedDay   String?   @db.VarChar(10)
+  pettedCount Int       @default(0)
+  /// Lancheira: { cereja, cupcake, torta, bolo, milkshake } → quantidade.
+  inventory   Json
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now()) @db.DateTime(3)
+  updatedAt   DateTime  @updatedAt @db.DateTime(3)
+
+  @@unique([workspaceId, userId])
+}
+
+/// Comida concedida uma única vez por evento de origem (ex.: tarefa X concluída). Evita ganhar
+/// várias comidas marcando e desmarcando a mesma coisa.
+model PetAward {
+  id          String    @id @default(cuid())
+  workspaceId String
+  /// task | idea | milestone | project | streak
+  sourceType  String    @db.VarChar(20)
+  sourceId    String    @db.VarChar(40)
+  food        String    @db.VarChar(20)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  createdAt   DateTime  @default(now()) @db.DateTime(3)
+
+  @@unique([workspaceId, sourceType, sourceId])
 }

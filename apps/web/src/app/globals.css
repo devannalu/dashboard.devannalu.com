@@ -221,6 +221,26 @@ select option {
   animation: cherry-pop 0.35s cubic-bezier(0.3, 1.6, 0.5, 1);
 }
 
+/* Pet: respira devagar, pula ao comer, corações no carinho (desligado com prefers-reduced-motion). */
+@keyframes pet-breathe {
+  0%, 100% { transform: scale(1); }
+  50% { transform: scale(1.018, 1.012); }
+}
+@keyframes pet-jump {
+  0%, 100% { transform: translateY(0); }
+  35% { transform: translateY(-14px); }
+  60% { transform: translateY(0); }
+  75% { transform: translateY(-5px); }
+}
+@keyframes pet-heart {
+  0% { opacity: 0; transform: translate(-50%, 0) scale(0.6); }
+  20% { opacity: 1; }
+  100% { opacity: 0; transform: translate(-50%, -90px) scale(1.2); }
+}
+.pet-breathe { transform-origin: 50% 100%; animation: pet-breathe 4s ease-in-out infinite; }
+.pet-jump { animation: pet-jump 0.7s ease-out, pet-breathe 4s ease-in-out 0.7s infinite; }
+.pet-heart { animation: pet-heart 1.2s ease-out forwards; }
+
 body {
   background: var(--bg);
   color: var(--text);

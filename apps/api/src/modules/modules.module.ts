@@ -6,6 +6,7 @@ import { ENV, type Env } from '../config/env.js';
 import { FilesController } from './files.controller.js';
 import { IdeasConvertController } from './ideas-convert.controller.js';
 import { InsightsController } from './insights.controller.js';
+import { PetController } from './pet.controller.js';
 import {
   ClientsController,
   EventsController,
@@ -26,6 +27,7 @@ import {
     GithubController,
     IdeasConvertController,
     InsightsController,
+    PetController,
     FilesController,
     ClientsController,
     ProjectsController,

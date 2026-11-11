@@ -208,7 +208,7 @@ export interface ReportsDto {
 }
 
 // ---------- Início personalizável (widgets) ----------
-export const widgetIdSchema = z.enum(['hoje', 'atividade', 'calendario', 'projetos', 'kpi7', 'agora', 'captura', 'notas']);
+export const widgetIdSchema = z.enum(['hoje', 'atividade', 'calendario', 'projetos', 'kpi7', 'agora', 'captura', 'notas', 'pet']);
 export type WidgetId = z.infer<typeof widgetIdSchema>;
 export const widgetSizeSchema = z.enum(['sm', 'md', 'lg', 'full']);
 export type WidgetSize = z.infer<typeof widgetSizeSchema>;
@@ -301,3 +301,49 @@ export const githubImportSchema = z.object({
     .max(100),
 });
 export type GithubImportInput = z.infer<typeof githubImportSchema>;
+
+
+/* ------------------------------------------------------------------ pet (D-25, D-27, D-42) */
+export const petFoodSchema = z.enum(['cereja', 'cupcake', 'torta', 'bolo', 'milkshake']);
+export type PetFood = z.infer<typeof petFoodSchema>;
+
+/** Valor de cada comida: saciedade e XP, e de onde ela vem. */
+export const PET_FOODS: Record<PetFood, { label: string; source: string; satiety: number; xp: number }> = {
+  cereja: { label: 'Cereja', source: 'tarefa concluída', satiety: 10, xp: 1 },
+  cupcake: { label: 'Cupcake', source: 'nova ideia', satiety: 20, xp: 2 },
+  torta: { label: 'Torta de cereja', source: 'marco concluído', satiety: 45, xp: 5 },
+  bolo: { label: 'Bolo de cereja', source: 'projeto concluído', satiety: 100, xp: 15 },
+  milkshake: { label: 'Milkshake', source: '3 dias seguidos alimentando', satiety: 30, xp: 3 },
+};
+
+export type PetMood = 'feliz' | 'tranquila' | 'preocupada' | 'faminta' | 'sonolenta' | 'fraquinha';
+export const petMoodLabel: Record<PetMood, string> = {
+  feliz: 'feliz da vida',
+  tranquila: 'tranquila',
+  preocupada: 'preocupada com os atrasos',
+  faminta: 'com fome',
+  sonolenta: 'com sono',
+  fraquinha: 'fraquinha, dormindo',
+};
+
+export interface PetDto {
+  name: string;
+  /** 0–100, já com a queda por tempo aplicada. */
+  satiety: number;
+  /** 0–100. */
+  humor: number;
+  mood: PetMood;
+  level: number;
+  xp: number;
+  /** XP dentro do nível atual (0–9) para a barra. */
+  xpInLevel: number;
+  streak: number;
+  fedToday: boolean;
+  pettedToday: number;
+  inventory: Record<PetFood, number>;
+  /** Comidas novas ganhas desde a última leitura (para avisar na tela). */
+  newAwards: PetFood[];
+}
+
+export const petFeedSchema = z.object({ food: petFoodSchema });
+export const petUpdateSchema = z.object({ name: z.string().trim().min(1, 'Dê um nome ao pet.').max(40) });

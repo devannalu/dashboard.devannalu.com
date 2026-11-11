@@ -17,6 +17,7 @@ import Link from "next/link";
 import { useRef, useState, type DragEvent, type FormEvent, type ReactNode } from "react";
 import { DEFAULT_KINDS, GithubHeatmap, StudioHeatmap } from "@/components/app/activity-heatmap";
 import { LoadError, ProjectStatusBadge } from "@/components/app/common";
+import { PetCard } from "@/components/app/pet-card";
 import { TaskRow, TaskSheet, useTaskActions } from "@/components/app/tasks";
 import { Button, IconButton } from "@/components/ui/button";
 import { Card, CardHeader, EmptyState, Progress, Skeleton } from "@/components/ui/display";
@@ -33,14 +34,15 @@ type LayoutItem = DashboardLayout["widgets"][number];
 
 /** Disposição padrão (linhas de 12 colunas em telas grandes). */
 const DEFAULT_LAYOUT: LayoutItem[] = [
-  { id: "atividade", size: "full", hidden: false },
+  { id: "pet", size: "md", hidden: false },
   { id: "hoje", size: "md", hidden: false },
-  { id: "calendario", size: "md", hidden: false },
+  { id: "atividade", size: "full", hidden: false },
   { id: "projetos", size: "lg", hidden: false },
   { id: "kpi7", size: "sm", hidden: false },
-  { id: "captura", size: "sm", hidden: false },
-  { id: "agora", size: "sm", hidden: false },
-  { id: "notas", size: "sm", hidden: false },
+  { id: "calendario", size: "md", hidden: false },
+  { id: "notas", size: "md", hidden: false },
+  { id: "captura", size: "md", hidden: false },
+  { id: "agora", size: "md", hidden: false },
 ];
 
 const TITLES: Record<WidgetId, string> = {
@@ -52,6 +54,7 @@ const TITLES: Record<WidgetId, string> = {
   agora: "Agora",
   captura: "Captura rápida",
   notas: "Notas recentes",
+  pet: "Seu pet",
 };
 
 /** Largura do widget: 1 coluna no celular, 2 no tablet, 12 colunas no desktop. */
@@ -63,12 +66,19 @@ const SPAN: Record<WidgetSize, string> = {
 };
 const SIZE_LABEL: Record<WidgetSize, string> = { sm: "P", md: "M", lg: "G", full: "Inteiro" };
 
-/** Junta o que está salvo com o padrão (widgets novos entram no fim; desconhecidos saem). */
+/** Junta o que está salvo com o padrão (widgets novos entram no começo; desconhecidos saem). */
 function mergeLayout(saved: unknown): LayoutItem[] {
   const parsed = dashboardLayoutSchema.safeParse(saved);
   if (!parsed.success) return DEFAULT_LAYOUT;
   const known = parsed.data.widgets;
-  return [...known, ...DEFAULT_LAYOUT.filter((d) => !known.some((k) => k.id === d.id))];
+  // Widgets novos (ex.: pet) entram no começo, para aparecerem sem a usuária procurar,
+  // e as linhas são reencaixadas (mesma ordem; só ajusta tamanhos para não sobrar buraco).
+  const added = DEFAULT_LAYOUT.filter((d) => !known.some((k) => k.id === d.id));
+  if (added.length === 0) return known;
+  const merged = [...added, ...known];
+  const packed = autoArrange(merged.filter((w) => !w.hidden), 0);
+  const byId = new Map(merged.map((w) => [w.id, w]));
+  return [...packed.map((p) => ({ ...byId.get(p.id)!, size: p.size })), ...merged.filter((w) => w.hidden)];
 }
 
 function greeting(): string {
@@ -294,6 +304,7 @@ export default function Inicio() {
         <QuickCapture onSaved={dash.reload} />
       </Card>
     ),
+    pet: () => <PetCard />,
     notas: () => (
       <Card aria-labelledby="h-notas" className="h-full">
         <CardHeader id="h-notas" title="Notas recentes" action={<Link href="/notas">Abrir notas</Link>} />
