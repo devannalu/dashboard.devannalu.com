@@ -74,6 +74,10 @@ export async function api<T = unknown>(path: string, opts: { method?: Method; bo
     window.dispatchEvent(new CustomEvent("sessao-expirada"));
   }
   if (!res.ok) throw await toError(res);
+  // Criou, alterou ou apagou algo: avisa todas as telas abertas (Início, calendário…) para recarregar.
+  if (method !== "GET" && !path.startsWith("/api/auth/")) {
+    queueMicrotask(() => window.dispatchEvent(new CustomEvent("dados-alterados")));
+  }
   if (res.status === 204) return undefined as T;
   return (await res.json()) as T;
 }

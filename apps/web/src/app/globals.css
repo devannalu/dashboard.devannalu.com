@@ -25,6 +25,12 @@
   --success: #2c6a48;
   --info: #2f5470;
   --warn: #9a6a00;
+  /* Ilustração do check de cereja (D-23): iguais nos dois temas. */
+  --cherry-red: #b3121c;
+  --cherry-dark: #9e1018;
+  --cherry-stem: #5b3a1e;
+  --cherry-leaf: #3f7a33;
+  --cherry-shine: #ffffff;
   /* Escala do gráfico de contribuições ("brasa"): do apagado ao mais intenso. */
   --heat-0: #e4d9d4;
   --heat-1: #ffc98f;
@@ -202,6 +208,17 @@ select option {
   select option::checkmark {
     display: none;
   }
+}
+
+/* "Pop" das cerejas ao marcar uma tarefa (desligado com prefers-reduced-motion). */
+@keyframes cherry-pop {
+  0% { transform: scale(0.4); }
+  70% { transform: scale(1.15); }
+  100% { transform: scale(1); }
+}
+.cherry-pop {
+  transform-origin: 12px 14px;
+  animation: cherry-pop 0.35s cubic-bezier(0.3, 1.6, 0.5, 1);
 }
 
 body {

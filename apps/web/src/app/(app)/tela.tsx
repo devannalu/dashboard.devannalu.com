@@ -225,7 +225,7 @@ export default function Inicio() {
         {!d ? (
           <Skeleton className="h-28" />
         ) : d.activeProjects.length === 0 ? (
-          <EmptyState title="sem projetos ativos" description="Projetos com status “Em andamento” aparecem aqui com o progresso das tarefas." action={<Link className="font-bold text-accent-text underline" href="/projetos?novo=1">Criar projeto</Link>} />
+          <EmptyState title="sem projetos ativos" description="Projetos em planejamento ou em andamento aparecem aqui com o progresso das tarefas." action={<Link className="font-bold text-accent-text underline" href="/projetos?novo=1">Criar projeto</Link>} />
         ) : (
           <div className="grid gap-3 sm:grid-cols-2">
             {d.activeProjects.map((p) => (

@@ -44,12 +44,22 @@ export function CherryCheck({ checked, onChange, label, disabled }: { checked: b
       aria-label={label}
       disabled={disabled}
       onClick={() => onChange(!checked)}
-      className="group inline-flex size-7 shrink-0 items-center justify-center rounded-full disabled:opacity-50"
+      className="group inline-flex size-7 shrink-0 items-center justify-center rounded-full text-text-2 disabled:opacity-50"
     >
-      <svg viewBox="0 0 24 24" className="size-6" aria-hidden>
-        <path d="M12 3c0 3 1 5 3 7" className="fill-none stroke-success" strokeWidth="1.6" strokeLinecap="round" />
-        <circle cx="12" cy="15" r="6.5" className={cn("stroke-accent-text transition-colors", checked ? "fill-accent-text" : "fill-transparent group-hover:fill-accent-soft")} strokeWidth="1.8" />
-        {checked && <path d="M9.2 15.2l1.9 1.9 3.8-3.9" className="fill-none stroke-bg" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />}
+      {/* Check de cereja do protótipo aprovado (D-23): círculo vazio → par de cerejas com "pop". */}
+      <svg viewBox="0 0 24 24" className="size-6.5 overflow-visible" aria-hidden>
+        {checked ? (
+          <g className="cherry-pop">
+            <path d="M12.5 2.5 C11 6 9 8 7 11 M12.5 2.5 C13 6 15 8 17 11" fill="none" stroke="var(--cherry-stem)" strokeWidth="1.6" strokeLinecap="round" />
+            <path d="M12.5 2.5 C15 0.8 18.5 1.4 20 3.2 C17.5 4.6 14.5 4.4 12.5 2.5 Z" fill="var(--cherry-leaf)" />
+            <circle cx="7" cy="15.5" r="5.2" fill="var(--cherry-red)" />
+            <circle cx="17" cy="16" r="5.2" fill="var(--cherry-dark)" />
+            <ellipse cx="5.2" cy="13.6" rx="1.5" ry="1" fill="var(--cherry-shine)" opacity=".7" />
+            <ellipse cx="15.2" cy="14.1" rx="1.5" ry="1" fill="var(--cherry-shine)" opacity=".7" />
+          </g>
+        ) : (
+          <circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" strokeWidth="2" className="transition-colors group-hover:stroke-accent-text" />
+        )}
       </svg>
     </button>
   );

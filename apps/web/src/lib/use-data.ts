@@ -44,12 +44,24 @@ export function useData<T>(path: string | null): DataState<T> {
   useEffect(() => {
     const ctrl = new AbortController();
     void fetchInto(ctrl.signal);
-    // Recarrega quando outra parte da tela (ex.: captura rápida) avisa que criou algo.
-    const onChange = () => void fetchInto();
+    // Recarrega quando qualquer tela cria/altera algo (aviso disparado pelo cliente da API)
+    // e quando a janela volta ao foco (o Next mantém páginas já visitadas em memória).
+    let last = Date.now();
+    const onChange = () => {
+      last = Date.now();
+      void fetchInto();
+    };
+    const onFocus = () => {
+      if (document.visibilityState === "visible" && Date.now() - last > 5000) onChange();
+    };
     window.addEventListener("dados-alterados", onChange);
+    window.addEventListener("focus", onFocus);
+    document.addEventListener("visibilitychange", onFocus);
     return () => {
       ctrl.abort();
       window.removeEventListener("dados-alterados", onChange);
+      window.removeEventListener("focus", onFocus);
+      document.removeEventListener("visibilitychange", onFocus);
     };
   }, [fetchInto]);
 

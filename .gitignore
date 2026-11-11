@@ -22,3 +22,6 @@ Thumbs.db
 
 # Cliente Prisma gerado (recriado por prisma generate)
 apps/api/src/generated/
+
+# Folhas de referência do pet (grandes, não usadas pelo site)
+design/pet/referencias/

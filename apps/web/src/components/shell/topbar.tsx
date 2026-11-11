@@ -111,7 +111,6 @@ export function CaptureSheet({ open, onOpenChange }: { open: boolean; onOpenChan
       toast(kind === "note" ? "Nota salva na Inbox" : kind === "task" ? "Tarefa criada" : "Ideia guardada no Idea Lab");
       setText("");
       onOpenChange(false);
-      window.dispatchEvent(new CustomEvent("dados-alterados"));
     } catch (err) {
       setError(errorMessage(err));
     } finally {

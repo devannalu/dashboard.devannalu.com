@@ -10,6 +10,7 @@ import { withProgress } from './resources.js';
 
 const DAY = 24 * 60 * 60 * 1000;
 const projectRef = { select: { id: true, name: true } } as const;
+const ACTIVE: ('PLANNING' | 'IN_PROGRESS')[] = ['PLANNING', 'IN_PROGRESS'];
 
 /** "Hoje" no fuso da usuária (padrão America/Sao_Paulo), como `aaaa-mm-dd`. */
 export function todayIn(timezone: string, now = new Date()): string {
@@ -38,6 +39,7 @@ export class InsightsController {
     return utcDate(todayIn(user?.timezone ?? 'America/Sao_Paulo'));
   }
 
+  /** "Ativos" no Início = em planejamento ou em andamento (projeto iniciado, ainda não pausado/concluído). */
   @Get('dashboard')
   async dashboard(@Scope() scope: WorkspaceScope): Promise<DashboardDto> {
     const ws = scope.workspaceId;
@@ -48,7 +50,7 @@ export class InsightsController {
 
     const [activeProjects, openTasks, overdueCount, dueToday, ideas, inboxNotes, completed7, created7, notes7, ideas7, todayTasks, overdueTasks, projects, recentNotes, upcoming] =
       await Promise.all([
-        db.project.count({ where: { workspaceId: ws, status: 'IN_PROGRESS' } }),
+        db.project.count({ where: { workspaceId: ws, status: { in: ACTIVE } } }),
         db.task.count({ where: { workspaceId: ws, status: open } }),
         db.task.count({ where: { workspaceId: ws, status: open, dueDate: { lt: today } } }),
         db.task.count({ where: { workspaceId: ws, status: open, dueDate: today } }),
@@ -60,7 +62,7 @@ export class InsightsController {
         db.idea.count({ where: { workspaceId: ws, createdAt: { gte: weekAgo } } }),
         db.task.findMany({ where: { workspaceId: ws, dueDate: today }, include: { project: projectRef }, orderBy: [{ status: 'asc' }, { priority: 'desc' }], take: 30 }),
         db.task.findMany({ where: { workspaceId: ws, status: open, dueDate: { lt: today } }, include: { project: projectRef }, orderBy: { dueDate: 'asc' }, take: 15 }),
-        db.project.findMany({ where: { workspaceId: ws, status: 'IN_PROGRESS' }, include: { client: projectRef }, orderBy: { updatedAt: 'desc' }, take: 6 }),
+        db.project.findMany({ where: { workspaceId: ws, status: { in: ACTIVE } }, include: { client: projectRef }, orderBy: [{ status: 'desc' }, { updatedAt: 'desc' }], take: 6 }),
         db.note.findMany({ where: { workspaceId: ws, archivedAt: null }, include: { project: projectRef, idea: { select: { id: true, title: true } } }, orderBy: { updatedAt: 'desc' }, take: 5 }),
         this.items(scope, new Date(today.getTime() + DAY), new Date(today.getTime() + 15 * DAY), true),
       ]);
