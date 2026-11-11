@@ -3,10 +3,19 @@ import { PrismaMariaDb } from '@prisma/adapter-mariadb';
 import { PrismaClient } from '../generated/prisma/client.js';
 import { ENV, type Env } from '../config/env.js';
 
-/** Limite do pool via parâmetro da URL do driver mariadb (não sobrescreve um valor já informado). */
-function withPoolLimit(url: string, limit: number): string {
+/**
+ * Opções padrão do driver mariadb via URL (não sobrescreve valores já informados):
+ * - `connectionLimit`: tamanho do pool.
+ * - `allowPublicKeyRetrieval`: o MySQL 8 usa `caching_sha2_password`; sem TLS, o driver precisa
+ *   buscar a chave pública do servidor para autenticar. Sem isso, nenhuma conexão abre
+ *   ("pool failed to retrieve a connection", active=0). Aceitável porque o banco fica em rede
+ *   privada (Coolify/Docker); com TLS no banco, a opção não é usada.
+ * - `connectTimeout`: falha rápida e clara em vez de esperar o tempo do pool.
+ */
+export function withDriverDefaults(url: string, limit: number): string {
   const u = new URL(url);
-  if (!u.searchParams.has('connectionLimit')) u.searchParams.set('connectionLimit', String(limit));
+  const defaults: Record<string, string> = { connectionLimit: String(limit), allowPublicKeyRetrieval: 'true', connectTimeout: '5000' };
+  for (const [k, v] of Object.entries(defaults)) if (!u.searchParams.has(k)) u.searchParams.set(k, v);
   return u.toString();
 }
 
@@ -21,7 +30,7 @@ export class PrismaService implements OnModuleDestroy {
 
   constructor(@Inject(ENV) env: Env) {
     this.client = env.DATABASE_URL
-      ? new PrismaClient({ adapter: new PrismaMariaDb(withPoolLimit(env.DATABASE_URL, 10)) })
+      ? new PrismaClient({ adapter: new PrismaMariaDb(withDriverDefaults(env.DATABASE_URL, 10)) })
       : null;
     if (!this.client) this.log.warn('DATABASE_URL não definida: recursos de banco desativados.');
   }

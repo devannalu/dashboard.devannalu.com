@@ -18,10 +18,15 @@ export default function ConfiguracaoInicial() {
   const [loading, setLoading] = useState(false);
   const set = (k: keyof typeof v) => (e: { target: { value: string } }) => setV((p) => ({ ...p, [k]: e.target.value }));
 
+  // Só sai desta tela se a API confirmar que o primeiro acesso já foi feito (404).
+  // Erro do servidor (ex.: banco fora do ar) mostra aviso e mantém o formulário.
   useEffect(() => {
     fetch("/api/auth/setup", { cache: "no-store" })
-      .then((r) => !r.ok && router.replace("/entrar"))
-      .catch(() => undefined);
+      .then((r) => {
+        if (r.status === 404) router.replace("/entrar");
+        else if (!r.ok) setGeneral("O servidor está com problema agora. Tente de novo em instantes.");
+      })
+      .catch(() => setGeneral("Não foi possível falar com o servidor. Confira sua conexão."));
   }, [router]);
 
   async function submit(e: FormEvent) {

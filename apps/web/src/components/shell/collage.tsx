@@ -35,7 +35,7 @@ export function Collage({ level }: { level: Colagem }) {
           loading="lazy"
           decoding="async"
           className={cn("absolute h-auto drop-shadow-[3px_6px_8px_rgba(40,10,14,0.25)]", s.pos, !s.mobile && "max-sm:hidden")}
-          style={{ width: `calc(${s.w}px * var(--sticker-scale, 1))`, transform: `rotate(${s.r}deg)` }}
+          style={{ width: `calc(${s.w} * var(--sticker-unit, 1px))`, transform: `rotate(${s.r}deg)` }}
         />
       ))}
       <div className="grain absolute inset-0" />

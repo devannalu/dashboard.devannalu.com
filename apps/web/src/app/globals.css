@@ -131,10 +131,13 @@
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Adesivos menores em telas menores. */
-:root { --sticker-scale: 1; }
-@media (max-width: 1023px) { :root { --sticker-scale: 0.75; } }
-@media (max-width: 639px) { :root { --sticker-scale: 0.5; } }
+/*
+ * Tamanho dos adesivos proporcional à tela. As posições são em %, então o tamanho também
+ * precisa acompanhar largura E altura (referência 1800×1000), senão eles se sobrepõem.
+ * Nunca passam do tamanho original; no celular, escala fixa (só alguns adesivos aparecem).
+ */
+:root { --sticker-unit: min(1px, 0.0556vw, 0.1vh); }
+@media (max-width: 639px) { :root { --sticker-unit: 0.5px; } }
 
 body {
   background: var(--bg);
