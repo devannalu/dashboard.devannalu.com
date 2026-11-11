@@ -106,6 +106,9 @@ def main():
     glasses.save(LAYERS / "oculos.png")
     base = Image.open(LAYERS / "corpo-sem-rosto.png").convert("RGBA")
     WEB.mkdir(parents=True, exist_ok=True)
+    # Imagem padrão do app = a boneca completa original da owner, sem nenhuma alteração (pedido de 11/11/2026).
+    original = Image.open(LAYERS / "boneca-completa.png").convert("RGBA")
+    original.resize((W // 2, H // 2), Image.LANCZOS).save(WEB / "tranquila.webp", "WEBP", quality=90, method=6)
     tiles = []
     for name, (eyes, mouth) in EXPRESSOES.items():
         im = base.copy()
@@ -113,7 +116,8 @@ def main():
             im.alpha_composite(Image.open(LAYERS / f"{layer}.png").convert("RGBA"))
         im.alpha_composite(glasses)
         # versão web: metade do tamanho, WebP com transparência
-        im.resize((W // 2, H // 2), Image.LANCZOS).save(WEB / f"{name}.webp", "WEBP", quality=88, method=6)
+        if name != "tranquila":  # a padrão é a original (acima); montagens só para expressões futuras
+            im.resize((W // 2, H // 2), Image.LANCZOS).save(WEB / f"{name}.webp", "WEBP", quality=88, method=6)
         tiles.append((name, im.crop((330, 20, 790, 460))))
     sheet = Image.new("RGBA", (460 * min(3, len(tiles)), 440 * ((len(tiles) + 2) // 3)), (239, 232, 227, 255))
     for i, (name, tile) in enumerate(tiles):
