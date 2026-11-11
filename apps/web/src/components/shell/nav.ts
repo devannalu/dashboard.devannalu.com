@@ -1,22 +1,28 @@
-import { BarChart3, CalendarDays, CheckSquare, FileText, FolderKanban, FolderOpen, House, Lightbulb, Users, type LucideIcon } from "lucide-react";
+import type { ComponentType, SVGProps } from "react";
+import { IconCalendar, IconClients, IconFiles, IconHome, IconIdeas, IconNotes, IconProjects, IconReports, IconTasks } from "./nav-icons";
 
 export interface NavItem {
   href: string;
   label: string;
-  icon: LucideIcon;
-  /** Módulo ainda não implementado: aparece desabilitado com "em breve" (nada de link quebrado). */
-  soon?: boolean;
+  icon: ComponentType<SVGProps<SVGSVGElement>>;
+  group: "dia" | "criacao" | "negocio";
 }
 
-/** Navegação principal (docs/02-arquitetura-informacao.md §1). */
+export const NAV_GROUPS: { id: NavItem["group"]; label: string }[] = [
+  { id: "dia", label: "Seu dia" },
+  { id: "criacao", label: "Criação" },
+  { id: "negocio", label: "Negócio" },
+];
+
+/** Navegação principal (docs/02-arquitetura-informacao.md §1), agrupada por uso. */
 export const NAV: NavItem[] = [
-  { href: "/", label: "Início", icon: House },
-  { href: "/projetos", label: "Projetos", icon: FolderKanban, soon: true },
-  { href: "/tarefas", label: "Tarefas", icon: CheckSquare, soon: true },
-  { href: "/calendario", label: "Calendário", icon: CalendarDays, soon: true },
-  { href: "/notas", label: "Notas", icon: FileText, soon: true },
-  { href: "/ideias", label: "Idea Lab", icon: Lightbulb, soon: true },
-  { href: "/arquivos", label: "Arquivos", icon: FolderOpen, soon: true },
-  { href: "/clientes", label: "Clientes", icon: Users, soon: true },
-  { href: "/relatorios", label: "Relatórios", icon: BarChart3, soon: true },
+  { href: "/", label: "Início", icon: IconHome, group: "dia" },
+  { href: "/tarefas", label: "Tarefas", icon: IconTasks, group: "dia" },
+  { href: "/calendario", label: "Calendário", icon: IconCalendar, group: "dia" },
+  { href: "/projetos", label: "Projetos", icon: IconProjects, group: "criacao" },
+  { href: "/notas", label: "Notas", icon: IconNotes, group: "criacao" },
+  { href: "/ideias", label: "Idea Lab", icon: IconIdeas, group: "criacao" },
+  { href: "/arquivos", label: "Arquivos", icon: IconFiles, group: "criacao" },
+  { href: "/clientes", label: "Clientes", icon: IconClients, group: "negocio" },
+  { href: "/relatorios", label: "Relatórios", icon: IconReports, group: "negocio" },
 ];

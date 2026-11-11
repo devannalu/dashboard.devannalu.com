@@ -47,7 +47,9 @@ ActivityEvent, AuditLog, Job, Notification
 
 ### 3.1 Identidade e workspace
 
-**User** — `id`, `email` (único, normalizado minúsculo), `passwordHash`, `name`, `displayName?`, `avatarFileId?`, `timezone` (padrão `America/Sao_Paulo`), `weekStartsOn` (0 = domingo), `themePreference` (`LIGHT|DARK|SYSTEM`), `totpSecretEnc?` (criptografado), `totpEnabledAt?`, `lastLoginAt?`, `createdAt`, `updatedAt`.
+**User** — `id`, `email` (único, normalizado minúsculo), `passwordHash`, `name`, `displayName?`, `avatarFileId?`, `timezone` (padrão `America/Sao_Paulo`), `weekStartsOn` (0 = domingo), `themePreference` (`LIGHT|DARK|SYSTEM`), `totpSecretEnc?` (criptografado), `totpEnabledAt?`, `lastLoginAt?`, `createdAt`, `updatedAt`. *(Campos TOTP ficam para o futuro, D-19.)*
+
+> **Implementado em 11/11/2026 (D-35, migração `modulos_mvp`):** `Client`, `Project`, `Milestone`, `Task`, `Event`, `Note` (com `version`), `Idea` (com `convertedProjectId`) e `StoredFile`, todos com `workspaceId`. `User.dashboardLayout` (JSON, migração `preferencias_dashboard`, D-36) guarda a disposição do Início. Versão simplificada: ainda sem tags, subtarefas, checklists, revisões de escopo, versões de arquivo e lixeira (exclusão é definitiva, com confirmação).
 
 **RecoveryCode** — `id`, `userId`, `codeHash`, `usedAt?`.
 

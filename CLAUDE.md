@@ -17,12 +17,13 @@ Centro de comando digital da **Dev Annalu** (gestão de projetos, escopo, tarefa
 ## Relatório ao final de cada entrega (pt-BR)
 1. O que foi implementado · 2. Arquivos e módulos alterados · 3. Mudanças no banco · 4. Testes executados e resultado real · 5. Considerações de segurança · 6. Limitações conhecidas · 7. Próximo passo sugerido.
 
-## Estado atual (10/11/2026)
+## Estado atual (11/11/2026)
 - Fase 0 documentada; protótipo visual aprovado em partes (`design/dashboard-colagem.html` + `design/app.js`).
 - **M1 — Fundação:** épico E0 concluído (monorepo, API base, web com tokens, Prisma 7 com migração inicial, fila de jobs + worker, Docker Compose com MySQL na porta 3307, CI). Branch `feat/m1-fundacao`.
 - E3-2/E3-3 entregues (componentes em `apps/web/src/components/ui`, layout em `components/shell`, catálogo em `/design` só em dev).
 - Produção: Coolify na VPS da owner — `annalustudio.devannalu.com` (web), `studio-api` (alias interno), MySQL privado. Arquivos: Garage `studio-files` (guia em `docs/infra/armazenamento.md`).
 - Testes: `pnpm turbo run build typecheck test lint` (sem banco) e `pnpm --filter @studio/api test:int` (MySQL real, banco `studio_test`).
+- **MVP funcional (branch `feat/m2-autenticacao`, D-33/D-34/D-35):** login e primeiro acesso; todas as seções (Início, Projetos, Tarefas, Calendário, Notas, Idea Lab, Arquivos, Clientes, Relatórios, busca, captura rápida). Sem bloqueio de login (D-34). Toda rota exige sessão salvo `@Public()`; recursos novos via `crudController` em `apps/api/src/modules/` (sempre `WorkspaceScope`); testes de novo módulo usam `createTwoWorkspaces()`. Web: `useSession().ws(path)`, `useList`/`useData`, componentes em `components/app/`.
 - Pet 3D no Blender pausado (D-28).
 
 ## Ferramentas e versões (ver D-29)

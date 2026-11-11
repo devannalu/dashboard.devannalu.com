@@ -204,6 +204,30 @@ Sem Server Actions com regra de negócio e sem acesso direto ao banco pelo Next.
 - **Setup inicial:** rota `/configuracao-inicial` só funciona se não existir usuário **e** com um token de setup de uso único definido em variável de ambiente.
 - Login com GitHub OAuth não é proposto como método principal (acopla o acesso ao produto a uma conta externa). **[PROPOSTA]**
 
+### Como ficou implementado (M2, 11/11/2026 — D-33)
+
+| Item | Implementação |
+|---|---|
+| Rotas | `GET /api/auth/csrf`, `GET/POST /api/auth/setup`, `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`. Contratos em `packages/contracts/src/auth.ts` |
+| Seguro por padrão | `SessionGuard` global: toda rota exige sessão; exceções marcadas com `@Public()` (health, csrf, setup, login) |
+| CSRF | Middleware em toda mutação: `Origin` (se presente) igual a `APP_ORIGIN` **e** header `x-csrf-token` igual ao cookie `__Host-csrf` (HttpOnly, SameSite=Strict). A interface obtém o token em `GET /api/auth/csrf`. Vale também para login e setup |
+| Sessão | Token de 256 bits no cookie `__Host-sid`; banco guarda o SHA-256. 30 dias absoluto, 7 dias sem uso; `lastSeenAt` atualizado no máximo a cada 5 min. Token novo a cada login |
+| Senha | Argon2id (`@node-rs/argon2`, m=19 MiB, t=2, p=1); mínimo de 12 caracteres; lista local de ~30 mil senhas vazadas com 12+ caracteres (SecLists, `apps/api/data/senhas-vazadas.txt.gz`); recusa senha quase igual ao nome/e-mail |
+| Força bruta | **Retirado a pedido da owner (D-34):** sem bloqueio por conta nem limite por IP. Mantidos: Argon2id (lento por natureza), mesma resposta e mesmo tempo para e-mail inexistente, auditoria de cada falha |
+| IP real | `TRUST_PROXY_HOPS` (padrão 1: Traefik → Next → API). IPs gravados truncados (IPv4 /24, IPv6 /48) |
+| Primeiro acesso | Só com `OWNER_EMAIL` **e** `SETUP_TOKEN` (≥ 32 caracteres) configurados e nenhuma usuária no banco; e-mail e token comparados em tempo constante; resposta igual para e-mail ou token errado; depois disso a rota responde 404. Variáveis podem ser apagadas após o setup |
+| Auditoria | `AuditLog`: `setup.completed`, `setup.rejected`, `login.succeeded`, `login.failed`, `logout`. Metadados sem senha, token ou e-mail digitado |
+| Autorização por workspace | `WorkspaceMemberGuard` nas rotas `workspaces/:workspaceId/...`: não membro → 404. `WorkspaceScope` (tipo que só o guard cria) é o primeiro parâmetro de todo repositório; `inScope()` acrescenta o filtro e `foundOr404()` padroniza o 404. `@RequireRole()` pronto para a Fase 3 |
+| Testes | `apps/api/test/auth.int-spec.ts` (MySQL real) e helper `createTwoWorkspaces()` em `test/helpers/app.ts`, **obrigatório em todo módulo novo** (E2-4) |
+
+### Módulos do MVP (D-35)
+
+- Rotas REST em `/api/workspaces/{workspaceId}/{clients|projects|milestones|tasks|events|notes|ideas|files}` (GET lista, POST, GET/PATCH/DELETE `:id`), geradas por `apps/api/src/modules/crud.ts`, sempre com `WorkspaceScope` e checagem de que IDs referenciados (projeto, cliente, marco, ideia) são do mesmo workspace (422 `INVALID_REFERENCE`).
+- Especiais: `POST ideas/:id/convert` (transação), `GET dashboard`, `GET calendar?from&to` (máx. 100 dias), `GET reports`, `GET search?q`, `POST files` (multipart, campo `file`) e `GET files/:id/download` (streaming pela API, bucket nunca exposto).
+- Notas com concorrência otimista (`version` → 409 `VERSION_CONFLICT`). Upload: lista de extensões permitida, limite por tipo e assinatura de bytes.
+- `GET activity?days=` (7–371): contagem diária por tipo de ação, no fuso da usuária. `PUT /api/auth/me/dashboard`: disposição dos widgets do Início (validada por `dashboardLayoutSchema`).
+- Listas sem paginação por cursor nesta versão (limite de 1000 itens por consulta).
+
 ## 9. Jobs em segundo plano **[PROPOSTA]**
 
 Necessários para: lembretes, miniaturas, purga da lixeira, exportação de dados, e (1.1) processamento de webhooks e sincronização GitHub.

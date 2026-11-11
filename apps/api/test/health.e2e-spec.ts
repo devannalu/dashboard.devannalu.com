@@ -3,10 +3,12 @@ import { Test } from '@nestjs/testing';
 import { healthCheckSchema, problemSchema } from '@studio/contracts';
 import request from 'supertest';
 import { AppModule } from '../src/app.module.js';
+import { Public } from '../src/auth/decorators.js';
 import { AppException } from '../src/common/problem.filter.js';
 import { parseEnv } from '../src/config/env.js';
 import { configureApp } from '../src/main.js';
 
+@Public()
 @Controller('teste-erros')
 class ErrosController {
   @Get('inesperado')

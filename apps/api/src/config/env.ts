@@ -4,6 +4,10 @@ import { z } from 'zod';
  * Variáveis de ambiente validadas na inicialização.
  * Se algo obrigatório faltar ou estiver inválido, a API não sobe (falha rápida com mensagem clara).
  */
+function emptyToUndefined(v: unknown): unknown {
+  return typeof v === 'string' && v.trim() === '' ? undefined : v;
+}
+
 export const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   PORT: z.coerce.number().int().min(1).max(65535).default(4000),
@@ -19,6 +23,18 @@ export const envSchema = z.object({
   S3_BUCKET: z.string().min(3).optional(),
   S3_ACCESS_KEY_ID: z.string().min(1).optional(),
   S3_SECRET_ACCESS_KEY: z.string().min(1).optional(),
+
+  /** Primeiro acesso (D-19): só este e-mail pode definir a senha, e só com o token de uso único. */
+  /** Vazias contam como ausentes: depois do setup, podem ser apagadas ou deixadas em branco. */
+  OWNER_EMAIL: z.preprocess(emptyToUndefined, z.email().transform((v) => v.trim().toLowerCase()).optional()),
+  SETUP_TOKEN: z.preprocess(emptyToUndefined, z.string().min(32, 'use pelo menos 32 caracteres aleatórios').optional()),
+  /**
+   * Token pessoal do GitHub (somente leitura) para o gráfico de contribuições do Início (D-37).
+   * Fica só no servidor; nunca vai para o banco, para a interface ou para os logs.
+   */
+  GITHUB_TOKEN: z.preprocess(emptyToUndefined, z.string().min(20, 'token do GitHub parece incompleto').optional()),
+  /** Quantos proxies confiáveis existem na frente da API (Traefik → Next = 1 salto até a API). Define o IP real. */
+  TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(1),
 });
 
 export type Env = z.infer<typeof envSchema>;

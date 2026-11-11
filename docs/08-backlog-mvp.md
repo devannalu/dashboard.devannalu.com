@@ -16,6 +16,8 @@ Tamanho relativo: **P** (até 1 dia), **M** (2–3 dias), **G** (4–6 dias). Es
 
 ---
 
+> **Status (11/11/2026, D-35):** a pedido da owner, todas as seções foram entregues numa versão funcional: login e primeiro acesso, Início (Dashboard), Projetos (lista e detalhe com Kanban, marcos, notas e arquivos), Tarefas (lista e Kanban), Calendário (mês, semana, agenda e eventos), Notas (Inbox, autosave, conflito), Idea Lab (com conversão em projeto), Arquivos, Clientes, Relatórios, busca global e captura rápida. Ficam para depois: editor rich text (Tiptap), tags, subtarefas e checklists, revisões de escopo, versões e miniaturas de arquivos, lixeira, lembretes, pet/perfil (E19), eventos recorrentes e E1-6/7/8/10.
+
 ## E0 — Fundação técnica
 
 | ID | História | Pri. | Tam. | Depende de |
@@ -46,7 +48,7 @@ Tamanho relativo: **P** (até 1 dia), **M** (2–3 dias), **G** (4–6 dias). Es
 | E1-1 | Primeiro acesso: owner define a senha para o e-mail de `OWNER_EMAIL`, com `SETUP_TOKEN` de uso único; cria o workspace | P0 | M | E0-5, E2-1 |
 | E1-2 | Login com e-mail/senha (Argon2id), sessão por cookie `__Host-`, logout | P0 | M | E1-1 |
 | E1-3 | Proteção CSRF (double-submit + Origin) | P0 | P | E1-2 |
-| E1-4 | Limitação de taxa e bloqueio progressivo no login | P0 | P | E1-2 |
+| ~~E1-4~~ | ~~Limitação de taxa e bloqueio progressivo no login~~ — **retirado pela owner (D-34)** | — | — | — |
 | E1-5 | ~~2FA TOTP~~ — movido para o futuro (D-19). No lugar: senha mínima de 12 caracteres + verificação contra senhas vazadas | P0 | P | E1-2 |
 | E1-6 | Sessões ativas: listar, encerrar uma, encerrar todas | P1 | P | E1-2 |
 | E1-7 | Alterar senha (exige atual; encerra outras sessões) | P1 | P | E1-2 |
@@ -54,14 +56,16 @@ Tamanho relativo: **P** (até 1 dia), **M** (2–3 dias), **G** (4–6 dias). Es
 | E1-9 | `AuditLog` dos eventos de autenticação | P0 | P | E1-2 |
 | E1-10 | Comando CLI de redefinição de senha no servidor | P1 | P | E1-2 |
 
+> **Status (11/11/2026):** E1-1, E1-2, E1-3, E1-4, E1-5 (senha forte) e E1-9 implementados na API com testes de integração (D-33). Telas de login e primeiro acesso (E3-5) aguardam aprovação visual. E1-6, E1-7, E1-8 e E1-10 pendentes.
+
 **Critérios de aceite:**
-- [ ] Setup não pode ser executado de novo após existir uma usuária (teste).
-- [ ] Senha nunca é registrada em log nem retornada pela API (teste sobre logs).
-- [ ] Banco armazena só hash do token de sessão.
-- [ ] 10 tentativas erradas em sequência resultam em bloqueio temporário e evento de auditoria.
-- [ ] Requisição de mutação sem token CSRF ou de outra origem recebe 403.
-- [ ] Primeiro acesso recusa e-mail diferente de `OWNER_EMAIL` e token inválido; depois de criada a senha, a rota retorna 404.
-- [ ] Senha com menos de 12 caracteres ou presente na lista de senhas vazadas é recusada com mensagem clara.
+- [x] Setup não pode ser executado de novo após existir uma usuária (teste).
+- [x] Senha nunca é registrada em log nem retornada pela API (teste sobre logs).
+- [x] Banco armazena só hash do token de sessão.
+- [~] ~~10 tentativas erradas em sequência resultam em bloqueio temporário~~ — retirado (D-34); cada falha continua auditada.
+- [x] Requisição de mutação sem token CSRF ou de outra origem recebe 403.
+- [x] Primeiro acesso recusa e-mail diferente de `OWNER_EMAIL` e token inválido; depois de criada a senha, a rota retorna 404.
+- [x] Senha com menos de 12 caracteres ou presente na lista de senhas vazadas é recusada com mensagem clara.
 
 ---
 
@@ -74,9 +78,11 @@ Tamanho relativo: **P** (até 1 dia), **M** (2–3 dias), **G** (4–6 dias). Es
 | E2-3 | Padrão de repositório escopado por workspace (base reutilizável) | P0 | M | E2-2 |
 | E2-4 | Suíte de testes de autorização cruzada (helper que cria 2 workspaces) | P0 | M | E2-3 |
 
+> **Status (11/11/2026):** E2-1…E2-4 implementados (D-33). A suíte de autorização cruzada deve ser aplicada a cada módulo novo.
+
 **Critérios de aceite:**
-- [ ] Toda rota de negócio retorna 404 para recurso de outro workspace (suíte E2-4 aplicada a cada novo módulo).
-- [ ] Não existe nenhum ID de usuário ou workspace fixo no código.
+- [x] Toda rota de negócio retorna 404 para recurso de outro workspace (suíte E2-4 aplicada a cada novo módulo).
+- [x] Não existe nenhum ID de usuário ou workspace fixo no código.
 
 ---
 

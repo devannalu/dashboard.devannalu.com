@@ -32,7 +32,7 @@ export function AppShell({ children }: { children: ReactNode }) {
         Pular para o conteúdo
       </a>
       <Collage level={colagem} />
-      <div className={cn("relative z-10 grid min-h-screen grid-cols-1", menu === "recolhido" ? "lg:grid-cols-[76px_minmax(0,1fr)]" : "lg:grid-cols-[252px_minmax(0,1fr)]")}>
+      <div className={cn("relative z-10 grid min-h-screen grid-cols-1", menu === "recolhido" ? "lg:grid-cols-[84px_minmax(0,1fr)]" : "lg:grid-cols-[256px_minmax(0,1fr)]")}>
         <Sidebar collapsed={menu === "recolhido"} onToggleCollapsed={() => setMenu(menu === "recolhido" ? "aberto" : "recolhido")} drawerOpen={drawer} onNavigate={() => setDrawer(false)} />
         {drawer && <div aria-hidden className="fixed inset-0 z-20 bg-black/45 lg:hidden" onClick={() => setDrawer(false)} />}
         <div className="min-w-0">

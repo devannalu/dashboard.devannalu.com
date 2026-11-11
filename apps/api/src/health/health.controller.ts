@@ -1,11 +1,13 @@
 import { Controller, Get, HttpStatus, Res } from '@nestjs/common';
 import type { HealthCheck } from '@studio/contracts';
 import type { Response } from 'express';
+import { Public } from '../auth/decorators.js';
 import { PrismaService } from '../database/prisma.service.js';
 import { StorageService } from '../storage/storage.service.js';
 
 const VERSION = process.env.npm_package_version ?? '0.0.0';
 
+@Public()
 @Controller('health')
 export class HealthController {
   constructor(

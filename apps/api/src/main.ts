@@ -1,6 +1,7 @@
 import { ConsoleLogger, type INestApplication } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module.js';
+import { csrfProtection } from './auth/csrf.middleware.js';
 import { requestContext } from './common/request-context.middleware.js';
 import { EnvValidationError, parseEnv, type Env } from './config/env.js';
 import { loadDotEnv } from './config/load-dotenv.js';
@@ -8,7 +9,10 @@ import { loadDotEnv } from './config/load-dotenv.js';
 /** Configura a aplicação (usado também pelos testes e2e, para testar o app real). */
 export function configureApp(app: INestApplication, env: Env): INestApplication {
   app.setGlobalPrefix('api');
+  // IP real da cliente (limite de tentativas e auditoria): confia só nos proxies conhecidos à frente da API.
+  (app.getHttpAdapter().getInstance() as { set(k: string, v: unknown): void }).set('trust proxy', env.TRUST_PROXY_HOPS);
   app.use(requestContext);
+  app.use(csrfProtection(env.APP_ORIGIN));
   app.enableShutdownHooks();
   if (env.NODE_ENV !== 'production') app.enableCors({ origin: env.APP_ORIGIN, credentials: true });
   return app;

@@ -40,6 +40,14 @@ model Workspace {
   slug      String            @unique @db.VarChar(80)
   members   WorkspaceMember[]
   auditLogs AuditLog[]
+  clients    Client[]
+  projects   Project[]
+  milestones Milestone[]
+  tasks      Task[]
+  events     Event[]
+  notes      Note[]
+  ideas      Idea[]
+  files      StoredFile[]
   createdAt DateTime          @default(now()) @db.DateTime(3)
   updatedAt DateTime          @updatedAt @db.DateTime(3)
 }
@@ -54,8 +62,10 @@ model User {
   timezone        String            @default("America/Sao_Paulo") @db.VarChar(64)
   weekStartsOn    Int               @default(0) @db.TinyInt
   themePreference ThemePreference   @default(SYSTEM)
+  /// Disposição dos widgets do Início (ordem, tamanho, visibilidade e ajustes). Nulo = padrão.
+  dashboardLayout Json?
   lastLoginAt     DateTime?         @db.DateTime(3)
-  memberships     WorkspaceMember[]
+  memberships    WorkspaceMember[]
   sessions        Session[]
   createdAt       DateTime          @default(now()) @db.DateTime(3)
   updatedAt       DateTime          @updatedAt @db.DateTime(3)
@@ -125,4 +135,208 @@ model Job {
   finishedAt  DateTime? @db.DateTime(3)
 
   @@index([status, runAt])
+}
+
+// ---------------------------------------------------------------------------
+// Módulos do MVP (D-35). Toda tabela de negócio tem workspaceId e índice começando por ele.
+// ---------------------------------------------------------------------------
+
+enum ProjectCategory {
+  PERSONAL
+  OWNED_PRODUCT
+  CLIENT
+  PROFESSIONAL_WORK
+}
+
+enum ProjectStatus {
+  IDEA
+  PLANNING
+  IN_PROGRESS
+  PAUSED
+  COMPLETED
+  ARCHIVED
+}
+
+enum Priority {
+  LOW
+  MEDIUM
+  HIGH
+  URGENT
+}
+
+enum TaskStatus {
+  BACKLOG
+  TODO
+  IN_PROGRESS
+  IN_REVIEW
+  DONE
+}
+
+enum IdeaStatus {
+  NEW
+  EXPLORING
+  VALIDATED
+  DISCARDED
+  CONVERTED
+}
+
+model Client {
+  id          String    @id @default(cuid())
+  workspaceId String
+  name        String    @db.VarChar(160)
+  company     String?   @db.VarChar(160)
+  email       String?   @db.VarChar(254)
+  phone       String?   @db.VarChar(40)
+  notes       String?   @db.Text
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  projects    Project[]
+  createdAt   DateTime  @default(now()) @db.DateTime(3)
+  updatedAt   DateTime  @updatedAt @db.DateTime(3)
+
+  @@index([workspaceId, name])
+}
+
+model Project {
+  id          String          @id @default(cuid())
+  workspaceId String
+  clientId    String?
+  name        String          @db.VarChar(160)
+  description String?         @db.Text
+  category    ProjectCategory @default(PERSONAL)
+  status      ProjectStatus   @default(PLANNING)
+  priority    Priority        @default(MEDIUM)
+  startDate   DateTime?       @db.Date
+  dueDate     DateTime?       @db.Date
+  workspace   Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  client      Client?         @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  milestones  Milestone[]
+  tasks       Task[]
+  events      Event[]
+  notes       Note[]
+  files       StoredFile[]
+  fromIdea    Idea?           @relation("IdeaConversion")
+  createdAt   DateTime        @default(now()) @db.DateTime(3)
+  updatedAt   DateTime        @updatedAt @db.DateTime(3)
+
+  @@index([workspaceId, status])
+  @@index([clientId])
+}
+
+model Milestone {
+  id          String    @id @default(cuid())
+  workspaceId String
+  projectId   String
+  title       String    @db.VarChar(200)
+  dueDate     DateTime? @db.Date
+  isDelivery  Boolean   @default(false)
+  completedAt DateTime? @db.DateTime(3)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project     Project   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  tasks       Task[]
+  createdAt   DateTime  @default(now()) @db.DateTime(3)
+  updatedAt   DateTime  @updatedAt @db.DateTime(3)
+
+  @@index([workspaceId, dueDate])
+  @@index([projectId])
+}
+
+model Task {
+  id          String     @id @default(cuid())
+  workspaceId String
+  /// Tarefa avulsa (sem projeto) é permitida (Q17).
+  projectId   String?
+  milestoneId String?
+  title       String     @db.VarChar(300)
+  description String?    @db.Text
+  status      TaskStatus @default(TODO)
+  priority    Priority   @default(MEDIUM)
+  dueDate     DateTime?  @db.Date
+  /// Ordem dentro da coluna do Kanban.
+  position    Float      @default(0)
+  completedAt DateTime?  @db.DateTime(3)
+  workspace   Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project     Project?   @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  milestone   Milestone? @relation(fields: [milestoneId], references: [id], onDelete: SetNull)
+  createdAt   DateTime   @default(now()) @db.DateTime(3)
+  updatedAt   DateTime   @updatedAt @db.DateTime(3)
+
+  @@index([workspaceId, status])
+  @@index([workspaceId, dueDate])
+  @@index([projectId])
+  @@index([milestoneId])
+}
+
+model Event {
+  id          String    @id @default(cuid())
+  workspaceId String
+  projectId   String?
+  title       String    @db.VarChar(200)
+  startsAt    DateTime  @db.DateTime(3)
+  endsAt      DateTime? @db.DateTime(3)
+  allDay      Boolean   @default(false)
+  location    String?   @db.VarChar(200)
+  notes       String?   @db.Text
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdAt   DateTime  @default(now()) @db.DateTime(3)
+  updatedAt   DateTime  @updatedAt @db.DateTime(3)
+
+  @@index([workspaceId, startsAt])
+}
+
+model Note {
+  id          String    @id @default(cuid())
+  workspaceId String
+  /// Sem projeto nem ideia = Inbox.
+  projectId   String?
+  ideaId      String?
+  title       String    @db.VarChar(200)
+  content     String    @db.MediumText
+  pinned      Boolean   @default(false)
+  archivedAt  DateTime? @db.DateTime(3)
+  /// Concorrência otimista: PATCH envia a versão esperada; divergência → 409.
+  version     Int       @default(1)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  idea        Idea?     @relation(fields: [ideaId], references: [id], onDelete: SetNull)
+  createdAt   DateTime  @default(now()) @db.DateTime(3)
+  updatedAt   DateTime  @updatedAt @db.DateTime(3)
+
+  @@index([workspaceId, updatedAt])
+  @@index([projectId])
+  @@index([ideaId])
+}
+
+model Idea {
+  id                 String     @id @default(cuid())
+  workspaceId        String
+  title              String     @db.VarChar(200)
+  description        String?    @db.Text
+  status             IdeaStatus @default(NEW)
+  convertedProjectId String?    @unique
+  workspace          Workspace  @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  convertedProject   Project?   @relation("IdeaConversion", fields: [convertedProjectId], references: [id], onDelete: SetNull)
+  notes              Note[]
+  createdAt          DateTime   @default(now()) @db.DateTime(3)
+  updatedAt          DateTime   @updatedAt @db.DateTime(3)
+
+  @@index([workspaceId, status])
+}
+
+/// Metadados do arquivo; o conteúdo fica no bucket S3 (chave sem dados da usuária).
+model StoredFile {
+  id          String    @id @default(cuid())
+  workspaceId String
+  projectId   String?
+  name        String    @db.VarChar(255)
+  mimeType    String    @db.VarChar(120)
+  size        Int
+  sha256      String    @db.Char(64)
+  storageKey  String    @db.VarChar(200)
+  workspace   Workspace @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
+  project     Project?  @relation(fields: [projectId], references: [id], onDelete: SetNull)
+  createdAt   DateTime  @default(now()) @db.DateTime(3)
+
+  @@index([workspaceId, createdAt])
+  @@index([projectId])
 }
