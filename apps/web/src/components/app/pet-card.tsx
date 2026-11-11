@@ -14,6 +14,8 @@ import { useToast } from "../ui/toast";
 import { LoadError } from "./common";
 
 const FOODS = petFoodSchema.options;
+/** Versão no endereço: ao trocar a arte, mude o `v` para o navegador não mostrar a imagem antiga do cache. */
+const PET_IMAGE = "/pet/tranquila.webp?v=original-1";
 
 function Meter({ label, value, max = 100, suffix }: { label: string; value: number; max?: number; suffix?: string }) {
   const pct = Math.max(0, Math.min(100, Math.round((value / max) * 100)));
@@ -103,7 +105,7 @@ export function PetCard() {
             {/* eslint-disable-next-line @next/next/no-img-element -- arte do pet já otimizada em WebP */}
             <img
               key={jump}
-              src="/pet/tranquila.webp"
+              src={PET_IMAGE}
               alt=""
               className={cn("pet-breathe h-full w-full object-cover object-top", jump > 0 && "pet-jump", weak && "opacity-70 grayscale-[40%]")}
             />
