@@ -92,7 +92,7 @@ export function GithubImportSheet({ open, onOpenChange, onImported }: { open: bo
   }
 
   return (
-    <Sheet open={open} onOpenChange={onOpenChange} title="importar do GitHub" description="Escolha os repositórios que viram projeto. O progresso continua vindo só das tarefas.">
+    <Sheet open={open} onOpenChange={onOpenChange} title="importar do GitHub" description="Escolha os repositórios que viram projeto. Com push nos últimos 30 dias, entram como Em andamento. O progresso continua vindo só das tarefas.">
       {repos.error && <LoadError message={repos.error} onRetry={repos.reload} />}
       {!repos.data && !repos.error && <Skeleton className="h-64" />}
       {repos.data && !repos.data.configured && (

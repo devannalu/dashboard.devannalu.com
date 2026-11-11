@@ -2,10 +2,11 @@ import { GithubReposService, type RepoInfo } from '../src/github/github-repos.se
 import { createTestApp, createTwoWorkspaces, resetIdentity, type Tenant, type TestApp } from './helpers/app.js';
 
 /** GitHub falso: a importação nunca sai para a internet nos testes. */
+const RECENT = new Date(Date.now() - 2 * 86_400_000).toISOString();
 const REPOS: RepoInfo[] = [
-  { id: '101', name: 'studio-os', fullName: 'annalu/studio-os', description: 'Meu painel', url: 'https://github.com/annalu/studio-os', private: true, archived: false, org: null, pushedAt: '2026-11-10T10:00:00Z' },
+  { id: '101', name: 'studio-os', fullName: 'annalu/studio-os', description: 'Meu painel', url: 'https://github.com/annalu/studio-os', private: true, archived: false, org: null, pushedAt: RECENT },
   { id: '102', name: 'portfolio-2023', fullName: 'annalu/portfolio-2023', description: null, url: 'https://github.com/annalu/portfolio-2023', private: false, archived: true, org: null, pushedAt: '2023-05-01T10:00:00Z' },
-  { id: '201', name: 'api-pagamentos', fullName: 'florence/api-pagamentos', description: 'Pagamentos', url: 'https://github.com/florence/api-pagamentos', private: true, archived: false, org: 'florence', pushedAt: '2026-11-09T10:00:00Z' },
+  { id: '201', name: 'api-pagamentos', fullName: 'florence/api-pagamentos', description: 'Pagamentos', url: 'https://github.com/florence/api-pagamentos', private: true, archived: false, org: 'florence', pushedAt: '2020-01-01T10:00:00Z' },
 ];
 const fake = { configured: true, list: () => Promise.resolve({ repos: REPOS, failedOrgs: [] }) };
 
@@ -40,7 +41,7 @@ describe('Importação de repositórios do GitHub (D-39, MySQL real)', () => {
     expect(forB.find((r: { id: string }) => r.id === '101').projectId).toBeNull();
   });
 
-  it('organização vira Trabalho profissional; arquivado entra como Arquivado; sem duplicar', async () => {
+  it('organização vira Trabalho profissional; push recente → Em andamento; antigo → Planejamento; arquivado → Arquivado; sem duplicar', async () => {
     const res = await a.browser.post(ws(a, '/github/import'), {
       items: [
         { repoId: '101', category: 'PERSONAL' },
@@ -53,9 +54,9 @@ describe('Importação de repositórios do GitHub (D-39, MySQL real)', () => {
 
     const projects = (await a.browser.get(ws(a, '/projects'))).body.data as Record<string, unknown>[];
     const byRepo = Object.fromEntries(projects.map((p) => [p.githubRepoId, p]));
-    expect(byRepo['101']).toMatchObject({ name: 'studio-os', category: 'PERSONAL', status: 'PLANNING', githubOrg: null, githubArchived: false, githubUrl: 'https://github.com/annalu/studio-os' });
+    expect(byRepo['101']).toMatchObject({ name: 'studio-os', category: 'PERSONAL', status: 'IN_PROGRESS', githubOrg: null, githubArchived: false, githubUrl: 'https://github.com/annalu/studio-os' });
     expect(byRepo['102']).toMatchObject({ status: 'ARCHIVED', githubArchived: true });
-    expect(byRepo['201']).toMatchObject({ category: 'PROFESSIONAL_WORK', githubOrg: 'florence' });
+    expect(byRepo['201']).toMatchObject({ category: 'PROFESSIONAL_WORK', githubOrg: 'florence', status: 'PLANNING' });
 
     const again = await a.browser.post(ws(a, '/github/import'), { items: [{ repoId: '101', category: 'PERSONAL' }] });
     expect(again.body).toEqual({ created: 0, skipped: 1 });

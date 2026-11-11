@@ -10,6 +10,9 @@ import { inScope, type WorkspaceScope } from '../workspaces/workspace-scope.js';
 import { GithubContributionsService } from './github-contributions.service.js';
 import { GithubReposService } from './github-repos.service.js';
 
+/** Push nos últimos N dias → o projeto importado já entra "Em andamento". */
+const ACTIVE_DAYS = 30;
+
 /** GitHub: gráfico de contribuições (D-37) e importação de repositórios como projetos (D-39). */
 @Controller('workspaces/:workspaceId/github')
 @UseGuards(WorkspaceMemberGuard)
@@ -41,7 +44,8 @@ export class GithubController {
 
   /**
    * Cria um projeto por repositório escolhido. Os dados vêm do GitHub (não do navegador).
-   * Organização → sempre "Trabalho profissional"; arquivado no GitHub → status Arquivado.
+   * Organização → sempre "Trabalho profissional"; arquivado no GitHub → status Arquivado;
+   * push recente → Em andamento (só o status inicial; o progresso continua vindo das tarefas).
    * Repositório já importado é ignorado (sem duplicar).
    */
   @Post('import')
@@ -54,6 +58,10 @@ export class GithubController {
       if (!byId.has(it.repoId)) throw new AppException(422, 'GITHUB_REPO_NOT_FOUND', 'Um dos repositórios não foi encontrado no seu GitHub. Atualize a lista e tente de novo.');
       if (it.clientId) await assertRefs(this.prisma, scope, { clientId: it.clientId }, { clientId: 'client' });
     }
+    // Status inicial (editável depois): arquivado → Arquivado; push nos últimos 30 dias → Em andamento.
+    const recent = Date.now() - ACTIVE_DAYS * 86_400_000;
+    const initialStatus = (r: { archived: boolean; pushedAt: string | null }) =>
+      r.archived ? ('ARCHIVED' as const) : r.pushedAt && Date.parse(r.pushedAt) >= recent ? ('IN_PROGRESS' as const) : ('PLANNING' as const);
     const data = items.map((it) => {
       const r = byId.get(it.repoId)!;
       return {
@@ -62,7 +70,7 @@ export class GithubController {
         description: r.description,
         category: r.org ? ('PROFESSIONAL_WORK' as const) : it.category,
         clientId: it.clientId ?? null,
-        status: r.archived ? ('ARCHIVED' as const) : ('PLANNING' as const),
+        status: initialStatus(r),
         githubRepoId: r.id,
         githubFullName: r.fullName,
         githubUrl: r.url,
