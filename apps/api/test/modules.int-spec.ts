@@ -134,6 +134,20 @@ describe('Módulos do MVP (MySQL real)', () => {
     expect((await a.browser.get(ws(a, '/calendar?from=2020-01-01&to=2021-01-01'))).status).toBe(422);
   });
 
+  it('calendário mostra início e prazo dos projetos (arquivados ficam de fora; B não aparece para A)', async () => {
+    await a.browser.post(ws(a, '/projects'), { name: 'Loja', startDate: '2030-03-02', dueDate: '2030-03-20' });
+    await a.browser.post(ws(a, '/projects'), { name: 'Velho', status: 'ARCHIVED', dueDate: '2030-03-10' });
+    await b.browser.post(ws(b, '/projects'), { name: 'De B', dueDate: '2030-03-05' });
+    const cal = (await a.browser.get(ws(a, '/calendar?from=2030-03-01&to=2030-04-01'))).body.data;
+    expect(cal).toEqual([
+      expect.objectContaining({ kind: 'project', edge: 'start', title: 'Loja', date: '2030-03-02' }),
+      expect.objectContaining({ kind: 'project', edge: 'due', title: 'Loja', date: '2030-03-20' }),
+    ]);
+    // Só o prazo dentro do intervalo.
+    const late = (await a.browser.get(ws(a, '/calendar?from=2030-03-15&to=2030-03-31'))).body.data;
+    expect(late).toEqual([expect.objectContaining({ edge: 'due', title: 'Loja' })]);
+  });
+
   it('relatórios: entregas no prazo e marcos atrasados', async () => {
     const proj = (await a.browser.post(ws(a, '/projects'), { name: 'P' })).body;
     const m1 = (await a.browser.post(ws(a, '/milestones'), { projectId: proj.id, title: 'Entrega', isDelivery: true, dueDate: '2099-01-01' })).body;

@@ -89,6 +89,7 @@ O erro precisa ser distinguível do Cherry primário. Por isso, o "perigo" é um
 | `--accent-hover` | `#8E2E44` | `#B8455E` |
 | `--accent-text` (links, item ativo) | `#A63850` | `#E39AAB` |
 | `--accent-soft` (tag, seleção) | `#F1D5DC` | `#3D2129` |
+| `--heat-0…4` (gráfico de contribuições) | escala cereja `#F3A5AA` → `#7E1414` | escala `#5E1519` → `#FF9AA0` |
 | `--accent-secondary` | `#B97183` | `#B97183` |
 | `--focus-ring` | `#A63850` (2 px) + halo `#F1D5DC` | `#E39AAB` (2 px) |
 

@@ -168,14 +168,16 @@ export interface IdeaDto { id: string; title: string; description: string | null
 export interface FileDto { id: string; name: string; mimeType: string; size: number; projectId: string | null; createdAt: string; project?: { id: string; name: string } | null }
 
 export interface CalendarItem {
-  kind: 'task' | 'milestone' | 'event';
+  kind: 'task' | 'milestone' | 'event' | 'project';
   id: string;
   title: string;
-  /** `aaaa-mm-dd` para tarefas/marcos; ISO com hora para eventos. */
+  /** `aaaa-mm-dd` para tarefas/marcos/projetos; ISO com hora para eventos. */
   date: string;
   allDay: boolean;
   done: boolean;
   isDelivery?: boolean;
+  /** Só em `project`: início ou prazo de entrega do projeto. */
+  edge?: 'start' | 'due';
   project?: { id: string; name: string } | null;
 }
 

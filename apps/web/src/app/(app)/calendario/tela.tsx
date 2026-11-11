@@ -1,7 +1,8 @@
 "use client";
 
 import type { CalendarItem, EventDto, ProjectDto, TaskDto } from "@studio/contracts";
-import { ChevronLeft, ChevronRight, Flag, Plus } from "lucide-react";
+import { ChevronLeft, ChevronRight, Flag, Plus, Rocket, Target } from "lucide-react";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { LoadError, PageHeader } from "@/components/app/common";
 import { clean, EntityForm } from "@/components/app/entity-form";
@@ -34,21 +35,36 @@ function prevMonth(ymd: string): string {
   return m === 1 ? `${y - 1}-12-01` : `${y}-${String(m - 1).padStart(2, "0")}-01`;
 }
 
+/** Prefixo do título conforme o tipo (marco, entrega, início/prazo de projeto). */
+function prefix(it: CalendarItem): string {
+  if (it.kind === "milestone") return it.isDelivery ? "Entrega: " : "Marco: ";
+  if (it.kind === "project") return it.edge === "start" ? "Início: " : "Prazo: ";
+  return "";
+}
+const itemKey = (it: CalendarItem) => `${it.kind}-${it.edge ?? ""}-${it.id}`;
+
 function ItemChip({ item, onClick }: { item: CalendarItem; onClick: () => void }) {
+  const Icon = item.kind === "milestone" ? Flag : item.kind === "project" ? (item.edge === "start" ? Rocket : Target) : null;
   return (
     <button
       type="button"
       onClick={onClick}
       className={cn(
         "flex w-full items-center gap-1 truncate rounded-md px-1.5 py-0.5 text-left text-[11px] font-semibold",
-        item.kind === "event" ? "bg-accent text-white" : item.kind === "milestone" ? "border border-accent-text text-accent-text" : "bg-accent-soft text-text",
+        item.kind === "event"
+          ? "bg-accent text-white"
+          : item.kind === "milestone"
+            ? "border border-accent-text text-accent-text"
+            : item.kind === "project"
+              ? "border border-dashed border-accent-text bg-glass-strong text-text"
+              : "bg-accent-soft text-text",
         item.done && "line-through opacity-60",
       )}
-      title={item.title}
+      title={`${prefix(item)}${item.title}`}
     >
-      {item.kind === "milestone" && <Flag aria-hidden className="size-3 shrink-0" />}
+      {Icon && <Icon aria-hidden className="size-3 shrink-0" />}
       {item.kind === "event" && !item.allDay && <span className="font-mono">{fmtTime(item.date)}</span>}
-      <span className="truncate">{item.title}</span>
+      <span className="truncate">{item.kind === "project" ? `${prefix(item)}${item.title}` : item.title}</span>
     </button>
   );
 }
@@ -57,6 +73,7 @@ function ItemChip({ item, onClick }: { item: CalendarItem; onClick: () => void }
 export default function Calendario() {
   const { ws } = useSession();
   const toast = useToast();
+  const router = useRouter();
   const today = todayYmd();
   const [view, setView] = useState<View>("mes");
   const [cursor, setCursor] = useState(today);
@@ -80,6 +97,7 @@ export default function Calendario() {
     try {
       if (item.kind === "event") setEventSheet({ event: await api<EventDto>(ws(`/events/${item.id}`)) });
       if (item.kind === "task") setTask(await api<TaskDto>(ws(`/tasks/${item.id}`)));
+      if (item.kind === "project") router.push(`/projetos/${item.id}`);
       if (item.kind === "milestone") toast(`Marco${item.project ? ` de ${item.project.name}` : ""} — edite na aba Marcos do projeto.`);
     } catch (e) {
       toast(errorMessage(e));
@@ -160,7 +178,7 @@ export default function Calendario() {
                     </button>
                   </div>
                   {items.slice(0, view === "mes" ? 3 : 12).map((it) => (
-                    <ItemChip key={`${it.kind}-${it.id}`} item={it} onClick={() => void open(it)} />
+                    <ItemChip key={itemKey(it)} item={it} onClick={() => void open(it)} />
                   ))}
                   {view === "mes" && items.length > 3 && <span className="px-1 text-[11px] text-text-2">+{items.length - 3} itens</span>}
                 </div>
@@ -184,13 +202,13 @@ export default function Calendario() {
                     </p>
                     <ul className="grid gap-1">
                       {items.map((it) => (
-                        <li key={`${it.kind}-${it.id}`} className="flex items-center gap-3">
+                        <li key={itemKey(it)} className="flex items-center gap-3">
                           <span className="w-12 shrink-0 font-mono text-xs text-text-2">{it.kind === "event" && !it.allDay ? fmtTime(it.date) : "dia"}</span>
                           <button type="button" onClick={() => void open(it)} className={cn("min-w-0 flex-1 truncate text-left text-sm font-semibold hover:text-accent-text", it.done && "text-text-2 line-through")}>
-                            {it.kind === "milestone" ? (it.isDelivery ? "Entrega: " : "Marco: ") : ""}
+                            {prefix(it)}
                             {it.title}
                           </button>
-                          <span className="hidden truncate text-xs text-text-2 sm:inline">{it.project?.name ?? (it.kind === "task" ? "avulsa" : "")}</span>
+                          <span className="hidden truncate text-xs text-text-2 sm:inline">{it.kind === "project" ? "projeto" : (it.project?.name ?? (it.kind === "task" ? "avulsa" : ""))}</span>
                         </li>
                       ))}
                     </ul>

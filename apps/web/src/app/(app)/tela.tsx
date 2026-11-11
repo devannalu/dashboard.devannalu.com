@@ -12,7 +12,7 @@ import {
   type WidgetId,
   type WidgetSize,
 } from "@studio/contracts";
-import { ArrowLeft, ArrowRight, Check, EyeOff, GripVertical, LayoutGrid, Plus, RotateCcw, SlidersHorizontal } from "lucide-react";
+import { ArrowLeft, ArrowRight, Check, EyeOff, GripVertical, LayoutGrid, Plus, RotateCcw, SlidersHorizontal, Sparkles } from "lucide-react";
 import Link from "next/link";
 import { useRef, useState, type DragEvent, type FormEvent, type ReactNode } from "react";
 import { DEFAULT_KINDS, GithubHeatmap, StudioHeatmap } from "@/components/app/activity-heatmap";
@@ -23,6 +23,7 @@ import { Card, CardHeader, EmptyState, Progress, Skeleton } from "@/components/u
 import { Select, Textarea } from "@/components/ui/field";
 import { useToast } from "@/components/ui/toast";
 import { api, errorMessage } from "@/lib/api";
+import { autoArrange } from "@/lib/auto-layout";
 import { cn } from "@/lib/cn";
 import { addDays, fmtDayMonth, fmtTime, MONTHS, WEEKDAYS, ymdOf } from "@/lib/format";
 import { useSession } from "@/lib/session";
@@ -117,6 +118,15 @@ export default function Inicio() {
     [next[a], next[b]] = [next[b]!, next[a]!];
     update(next);
   }
+  /** Organiza sozinho, sem buracos; cada clique seguinte mostra outra disposição. */
+  const variant = useRef(0);
+  function arrange() {
+    const visibleItems = layout.filter((w) => !w.hidden);
+    const packed = autoArrange(visibleItems, variant.current);
+    variant.current += 1;
+    const byId = new Map(layout.map((w) => [w.id, w]));
+    update([...packed.map((p) => ({ ...byId.get(p.id)!, size: p.size })), ...layout.filter((w) => w.hidden)]);
+  }
   function dropOn(target: WidgetId, e: DragEvent) {
     e.preventDefault();
     if (!dragId || dragId === target) return;
@@ -180,7 +190,7 @@ export default function Inicio() {
               ) : (
                 <ul className="grid gap-2">
                   {d.upcoming.map((i) => (
-                    <li key={`${i.kind}-${i.id}`} className="flex gap-3 border-t border-line pt-2 first:border-0 first:pt-0">
+                    <li key={`${i.kind}-${i.edge ?? ""}-${i.id}`} className="flex gap-3 border-t border-line pt-2 first:border-0 first:pt-0">
                       <span className="w-12 shrink-0 font-mono text-xs leading-tight text-text-2">
                         {fmtDayMonth(ymdOf(i.date))}
                         {i.kind === "event" && !i.allDay && (
@@ -192,7 +202,7 @@ export default function Inicio() {
                       </span>
                       <span className="min-w-0">
                         <b className="block truncate text-sm">
-                          {i.kind === "milestone" ? (i.isDelivery ? "Entrega: " : "Marco: ") : ""}
+                          {i.kind === "milestone" ? (i.isDelivery ? "Entrega: " : "Marco: ") : i.kind === "project" ? (i.edge === "start" ? "Início do projeto: " : "Prazo do projeto: ") : ""}
                           {i.title}
                         </b>
                         <small className="block truncate text-xs text-text-2">
@@ -326,11 +336,14 @@ export default function Inicio() {
         <div role="region" aria-label="Personalizar o início" className="glass grid gap-3 rounded-2xl p-4">
           <div className="flex flex-wrap items-center gap-3">
             <p className="text-sm">
-              <b>Arraste</b> os widgets para reordenar (ou use as setas), escolha o <b>tamanho</b> e esconda o que não usa.
+              <b>Arraste</b> os widgets para reordenar (ou use as setas), escolha o <b>tamanho</b> e esconda o que não usa. Ou deixe o Studio <b>organizar sozinho</b>.
             </p>
             <span role="status" className={cn("label-mono ml-auto", saveState === "erro" ? "text-danger" : saveState === "salvo" ? "text-success" : "")}>
               {saveState === "salvo" ? "Salvo na sua conta" : saveState === "salvando" ? "Salvando…" : "Erro ao salvar"}
             </span>
+            <Button size="sm" variant="secondary" icon={<Sparkles aria-hidden className="size-3.5" />} onClick={arrange} title="Encaixa os widgets sem espaços vazios. Clique de novo para ver outra disposição.">
+              Organizar sozinho
+            </Button>
             <Button size="sm" variant="ghost" icon={<RotateCcw aria-hidden className="size-3.5" />} onClick={() => update(DEFAULT_LAYOUT)}>
               Restaurar padrão
             </Button>

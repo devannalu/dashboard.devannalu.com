@@ -82,15 +82,34 @@ export class InsightsController {
   /** Itens de calendário no intervalo [from, to): tarefas e marcos com data, e eventos. Projeção, sem cópia (E8-1). */
   private async items(scope: WorkspaceScope, from: Date, to: Date, onlyOpen = false): Promise<CalendarItem[]> {
     const ws = scope.workspaceId;
-    const [tasks, milestones, events] = await Promise.all([
+    const inRange = { gte: from, lt: to };
+    const [tasks, milestones, events, projects] = await Promise.all([
       this.prisma.db.task.findMany({ where: { workspaceId: ws, dueDate: { gte: from, lt: to }, ...(onlyOpen ? { status: { not: 'DONE' } } : {}) }, include: { project: projectRef } }),
       this.prisma.db.milestone.findMany({ where: { workspaceId: ws, dueDate: { gte: from, lt: to }, ...(onlyOpen ? { completedAt: null } : {}) }, include: { project: projectRef } }),
       this.prisma.db.event.findMany({ where: { workspaceId: ws, startsAt: { gte: new Date(from.getTime() - DAY), lt: new Date(to.getTime() + DAY) } }, include: { project: projectRef } }),
+      // Início e prazo dos projetos (arquivados ficam de fora; em "só abertos", concluídos também).
+      this.prisma.db.project.findMany({
+        where: {
+          workspaceId: ws,
+          status: { notIn: onlyOpen ? ['ARCHIVED', 'COMPLETED'] : ['ARCHIVED'] },
+          OR: [{ startDate: inRange }, { dueDate: inRange }],
+        },
+        select: { id: true, name: true, status: true, startDate: true, dueDate: true },
+      }),
     ]);
+    const inWindow = (d: Date | null): d is Date => !!d && d >= from && d < to;
+    const projectItems: CalendarItem[] = projects.flatMap((p) => {
+      const base = { kind: 'project' as const, id: p.id, title: p.name, allDay: true, done: p.status === 'COMPLETED', project: { id: p.id, name: p.name } };
+      return [
+        ...(inWindow(p.startDate) ? [{ ...base, date: ymd(p.startDate), edge: 'start' as const }] : []),
+        ...(inWindow(p.dueDate) ? [{ ...base, date: ymd(p.dueDate), edge: 'due' as const }] : []),
+      ];
+    });
     const list: CalendarItem[] = [
       ...tasks.map((t) => ({ kind: 'task' as const, id: t.id, title: t.title, date: ymd(t.dueDate!), allDay: true, done: t.status === 'DONE', project: t.project })),
       ...milestones.map((m) => ({ kind: 'milestone' as const, id: m.id, title: m.title, date: ymd(m.dueDate!), allDay: true, done: !!m.completedAt, isDelivery: m.isDelivery, project: m.project })),
       ...events.map((e) => ({ kind: 'event' as const, id: e.id, title: e.title, date: e.startsAt.toISOString(), allDay: e.allDay, done: false, project: e.project })),
+      ...projectItems,
     ];
     return list.sort((a, b) => a.date.localeCompare(b.date));
   }

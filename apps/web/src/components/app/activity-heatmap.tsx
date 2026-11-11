@@ -12,14 +12,8 @@ import { LoadError } from "./common";
 
 export const DEFAULT_KINDS: ActivityKind[] = ["tasksCompleted", "tasksCreated", "notesCreated", "ideasCreated"];
 
-/** Intensidade por nível, sempre derivada do token de destaque (sem cor crua). */
-const LEVEL_STYLE = [
-  undefined,
-  { background: "color-mix(in srgb, var(--accent-text) 28%, transparent)" },
-  { background: "color-mix(in srgb, var(--accent-text) 52%, transparent)" },
-  { background: "color-mix(in srgb, var(--accent-text) 76%, transparent)" },
-  { background: "var(--accent-text)" },
-];
+/** Intensidade por nível: escala própria do gráfico (tokens --heat-0…4, claro e escuro). */
+const LEVEL_STYLE = [0, 1, 2, 3, 4].map((i) => ({ background: `var(--heat-${i})` }));
 
 function level(n: number, max: number): number {
   if (n <= 0) return 0;
@@ -74,7 +68,13 @@ function HeatmapView({ from, to, counts, detail, months, unit, total }: { from: 
       </div>
 
       <div ref={scroller} className="overflow-x-auto pb-1">
-        <div role="img" aria-label={summary} className="inline-grid gap-0.75" style={{ gridTemplateColumns: `22px repeat(${weeks.length}, 12px)` }}>
+        {/* Os quadrados esticam para ocupar o card (mín. 7px, com rolagem; máx. 18px). */}
+        <div
+          role="img"
+          aria-label={summary}
+          className="grid gap-0.75"
+          style={{ gridTemplateColumns: `22px repeat(${weeks.length}, minmax(7px, 1fr))`, maxWidth: `calc(22px + ${weeks.length} * 21px)` }}
+        >
           <span />
           {weeks.map((w, i) => {
             const monthStart = w.find((d) => d.endsWith("-01"));
@@ -94,7 +94,7 @@ function HeatmapView({ from, to, counts, detail, months, unit, total }: { from: 
       <div className="flex items-center justify-end gap-1.5 text-[11px] text-text-2" aria-hidden>
         menos
         {LEVEL_STYLE.map((st, i) => (
-          <span key={i} className={cn("size-3 rounded-[3px]", i === 0 && "bg-line")} style={st} />
+          <span key={i} className="size-3 rounded-[3px]" style={st} />
         ))}
         mais
       </div>
@@ -107,17 +107,17 @@ const ROW_LABEL = ["", "seg", "", "qua", "", "sex", ""];
 function Row({ row, weeks, from, to, counts, detail, max }: { row: number; weeks: string[][]; from: string; to: string; counts: Map<string, number>; detail: (date: string, n: number) => string; max: number }) {
   return (
     <>
-      <span className="font-mono text-[10px] leading-3 text-text-2">{ROW_LABEL[row]}</span>
+      <span className="self-center font-mono text-[10px] leading-3 text-text-2">{ROW_LABEL[row]}</span>
       {weeks.map((w) => {
         const day = w[row]!;
-        if (day < from || day > to) return <span key={day} className="size-3" />;
+        if (day < from || day > to) return <span key={day} className="aspect-square" />;
         const n = counts.get(day) ?? 0;
         const lv = level(n, max);
         return (
           <span
             key={day}
             title={`${fmtDate(day)}: ${detail(day, n)}`}
-            className={cn("size-3 rounded-[3px]", lv === 0 && "bg-line", day === to && "ring-1 ring-text")}
+            className={cn("aspect-square w-full rounded-[3px]", day === to && "ring-1 ring-text")}
             style={LEVEL_STYLE[lv]}
           />
         );

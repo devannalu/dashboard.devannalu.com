@@ -25,6 +25,12 @@
   --success: #2c6a48;
   --info: #2f5470;
   --warn: #9a6a00;
+  /* Escala do gráfico de contribuições: cereja do claro ao intenso. */
+  --heat-0: rgba(30, 18, 20, 0.08);
+  --heat-1: #f3a5aa;
+  --heat-2: #e2525c;
+  --heat-3: #c01b27;
+  --heat-4: #7e1414;
   --shadow: 0 8px 32px rgba(40, 10, 14, 0.12);
   color-scheme: light;
 }
@@ -48,6 +54,11 @@
     --success: #8fd3ac;
     --info: #9dc0dc;
     --warn: #f2c96b;
+    --heat-0: rgba(255, 255, 255, 0.07);
+    --heat-1: #5e1519;
+    --heat-2: #a11b22;
+    --heat-3: #e0353e;
+    --heat-4: #ff9aa0;
     --shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
     color-scheme: dark;
   }
@@ -71,6 +82,11 @@
   --success: #8fd3ac;
   --info: #9dc0dc;
   --warn: #f2c96b;
+  --heat-0: rgba(255, 255, 255, 0.07);
+  --heat-1: #5e1519;
+  --heat-2: #a11b22;
+  --heat-3: #e0353e;
+  --heat-4: #ff9aa0;
   --shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
   color-scheme: dark;
 }
@@ -132,12 +148,61 @@
 }
 
 /*
- * Tamanho dos adesivos proporcional à tela. As posições são em %, então o tamanho também
- * precisa acompanhar largura E altura (referência 1800×1000), senão eles se sobrepõem.
- * Nunca passam do tamanho original; no celular, escala fixa (só alguns adesivos aparecem).
+ * Campo de seleção. Navegadores com `appearance: base-select` (Chromium recente) ganham a lista
+ * em vidro com as cores do Studio; nos demais, a lista nativa usa ao menos as cores do tema.
  */
-:root { --sticker-unit: min(1px, 0.0556vw, 0.1vh); }
-@media (max-width: 639px) { :root { --sticker-unit: 0.5px; } }
+select option {
+  background-color: var(--bg);
+  color: var(--text);
+}
+@supports (appearance: base-select) {
+  select,
+  select::picker(select) {
+    appearance: base-select;
+  }
+  select {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  select::picker-icon {
+    color: var(--text-2);
+    transition: rotate 0.2s;
+  }
+  select:open::picker-icon {
+    rotate: 180deg;
+  }
+  select::picker(select) {
+    margin-top: 6px;
+    padding: 4px;
+    border: 1px solid var(--glass-border);
+    border-radius: 14px;
+    background: var(--glass-strong);
+    -webkit-backdrop-filter: blur(18px) saturate(1.3);
+    backdrop-filter: blur(18px) saturate(1.3);
+    box-shadow: var(--shadow);
+  }
+  select option {
+    padding: 7px 10px;
+    border-radius: 9px;
+    background: transparent;
+    font-size: 14px;
+    cursor: pointer;
+  }
+  select option:hover,
+  select option:focus-visible {
+    background: var(--accent-soft);
+    outline: none;
+  }
+  select option:checked {
+    background: var(--accent);
+    color: var(--sidebar-text);
+    font-weight: 700;
+  }
+  select option::checkmark {
+    display: none;
+  }
+}
 
 body {
   background: var(--bg);
