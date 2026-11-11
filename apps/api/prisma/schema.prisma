@@ -207,6 +207,13 @@ model Project {
   priority    Priority        @default(MEDIUM)
   startDate   DateTime?       @db.Date
   dueDate     DateTime?       @db.Date
+  /// Vínculo com repositório do GitHub (importação, D-39). Só referência: commits nunca mudam o progresso.
+  githubRepoId   String?      @db.VarChar(30)
+  githubFullName String?      @db.VarChar(200)
+  githubUrl      String?      @db.VarChar(300)
+  /// Organização dona do repositório; nulo = repositório pessoal.
+  githubOrg      String?      @db.VarChar(100)
+  githubArchived Boolean      @default(false)
   workspace   Workspace       @relation(fields: [workspaceId], references: [id], onDelete: Cascade)
   client      Client?         @relation(fields: [clientId], references: [id], onDelete: SetNull)
   milestones  Milestone[]
@@ -220,6 +227,7 @@ model Project {
 
   @@index([workspaceId, status])
   @@index([clientId])
+  @@unique([workspaceId, githubRepoId])
 }
 
 model Milestone {

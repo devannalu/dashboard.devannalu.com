@@ -223,7 +223,7 @@ Sem Server Actions com regra de negócio e sem acesso direto ao banco pelo Next.
 ### Módulos do MVP (D-35)
 
 - Rotas REST em `/api/workspaces/{workspaceId}/{clients|projects|milestones|tasks|events|notes|ideas|files}` (GET lista, POST, GET/PATCH/DELETE `:id`), geradas por `apps/api/src/modules/crud.ts`, sempre com `WorkspaceScope` e checagem de que IDs referenciados (projeto, cliente, marco, ideia) são do mesmo workspace (422 `INVALID_REFERENCE`).
-- Especiais: `POST ideas/:id/convert` (transação), `GET dashboard`, `GET calendar?from&to` (máx. 100 dias; tarefas, marcos, eventos e início/prazo dos projetos não arquivados), `GET reports`, `GET search?q`, `POST files` (multipart, campo `file`) e `GET files/:id/download` (streaming pela API, bucket nunca exposto).
+- Especiais: `POST ideas/:id/convert` (transação), `GET dashboard`, `GET calendar?from&to` (máx. 100 dias; tarefas, marcos, eventos e início/prazo dos projetos não arquivados), `GET github/repos` e `POST github/import` (D-39), `GET reports`, `GET search?q`, `POST files` (multipart, campo `file`) e `GET files/:id/download` (streaming pela API, bucket nunca exposto).
 - Notas com concorrência otimista (`version` → 409 `VERSION_CONFLICT`). Upload: lista de extensões permitida, limite por tipo e assinatura de bytes.
 - `GET activity?days=` (7–371): contagem diária por tipo de ação, no fuso da usuária. `PUT /api/auth/me/dashboard`: disposição dos widgets do Início (validada por `dashboardLayoutSchema`).
 - Listas sem paginação por cursor nesta versão (limite de 1000 itens por consulta).

@@ -1,6 +1,6 @@
 import { resolve } from 'node:path';
 import type { INestApplication, LoggerService } from '@nestjs/common';
-import { Test } from '@nestjs/testing';
+import { Test, type TestingModuleBuilder } from '@nestjs/testing';
 import type { Request } from 'express';
 import request from 'supertest';
 import { AppModule } from '../../src/app.module.js';
@@ -36,7 +36,10 @@ export interface TestApp {
 }
 
 /** Sobe a API real (mesma configuração de produção) contra o banco de testes (TEST_DATABASE_URL). */
-export async function createTestApp(overrides: Record<string, string> = {}): Promise<TestApp> {
+export async function createTestApp(
+  overrides: Record<string, string> = {},
+  configure: (b: TestingModuleBuilder) => TestingModuleBuilder = (b) => b,
+): Promise<TestApp> {
   const env = parseEnv({
     NODE_ENV: 'test',
     DATABASE_URL: process.env.TEST_DATABASE_URL,
@@ -46,7 +49,7 @@ export async function createTestApp(overrides: Record<string, string> = {}): Pro
     ...overrides,
   });
   const logger = new CapturingLogger();
-  const mod = await Test.createTestingModule({ imports: [AppModule.forRoot(env)] }).compile();
+  const mod = await configure(Test.createTestingModule({ imports: [AppModule.forRoot(env)] })).compile();
   const app = configureApp(mod.createNestApplication({ logger }), env);
   await app.init();
   const prisma = app.get(PrismaService);

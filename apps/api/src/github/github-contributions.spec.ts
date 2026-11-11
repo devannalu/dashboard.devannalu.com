@@ -59,10 +59,48 @@ describe('Contribuições do GitHub (D-37)', () => {
     expect(sent).toContain('contributionCalendar');
     expect(sent).not.toMatch(/mutation/);
 
-    await svc.contributions(12, new Date(now.getTime() + 10 * 60_000));
-    expect(fetchFn).toHaveBeenCalledTimes(1);
-    await svc.contributions(12, new Date(now.getTime() + 31 * 60_000));
+    // Duas consultas por atualização (visão do token + perfil público); depois, cache de 30 min.
     expect(fetchFn).toHaveBeenCalledTimes(2);
+    await svc.contributions(12, new Date(now.getTime() + 10 * 60_000));
+    expect(fetchFn).toHaveBeenCalledTimes(2);
+    await svc.contributions(12, new Date(now.getTime() + 31 * 60_000));
+    expect(fetchFn).toHaveBeenCalledTimes(4);
+  });
+
+  it('junta a visão do token com a do perfil público (privadas anônimas), maior número por dia', async () => {
+    const profile = new Response(
+      JSON.stringify({
+        data: {
+          user: {
+            contributionsCollection: {
+              contributionCalendar: {
+                totalContributions: 12,
+                weeks: [{ contributionDays: [{ date: '2026-11-08', contributionCount: 5 }, { date: '2026-11-09', contributionCount: 1 }] }, { contributionDays: [{ date: '2026-11-10', contributionCount: 4 }, { date: '2026-11-11', contributionCount: 2 }] }],
+              },
+            },
+          },
+        },
+      }),
+      { status: 200 },
+    );
+    const fetchFn = vi.fn().mockImplementationOnce(() => Promise.resolve(calendarResponse())).mockImplementationOnce(() => Promise.resolve(profile));
+    const r = await new GithubContributionsService(env, fetchFn as unknown as typeof fetch).contributions(12, new Date('2026-11-11T12:00:00Z'));
+    const sent = JSON.parse((fetchFn.mock.calls[1] as [string, RequestInit])[1].body as string) as { query: string; variables: { login: string } };
+    expect(sent.query).toContain('user(login: $login)');
+    expect(sent.variables.login).toBe('annalu');
+    expect(r.days).toEqual([
+      { date: '2026-11-08', count: 5 },
+      { date: '2026-11-09', count: 3 },
+      { date: '2026-11-10', count: 4 },
+      { date: '2026-11-11', count: 2 },
+    ]);
+    expect(r.total).toBe(14);
+  });
+
+  it('se o perfil público falhar, mostra só a visão do token', async () => {
+    const fetchFn = vi.fn().mockImplementationOnce(() => Promise.resolve(calendarResponse())).mockImplementationOnce(() => Promise.reject(new Error('ECONNRESET')));
+    const r = await new GithubContributionsService(env, fetchFn as unknown as typeof fetch).contributions(12, new Date('2026-11-11T12:00:00Z'));
+    expect(r.total).toBe(7);
   });
 
   it('token recusado vira erro claro, sem expor o token', async () => {

@@ -1,11 +1,12 @@
 "use client";
 
 import { projectCategoryLabel, type ProjectCategory, type ProjectDto } from "@studio/contracts";
-import { FolderKanban, Plus } from "lucide-react";
+import { FolderKanban, GitBranch, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import { LoadError, PageHeader, PROJECT_STATUS_OPTS, ProjectStatusBadge, Tabs } from "@/components/app/common";
+import { GithubImportSheet, GithubTags } from "@/components/app/github-import";
 import { ProjectSheet } from "@/components/app/project-sheet";
 import { Button } from "@/components/ui/button";
 import { Card, EmptyState, Progress, Skeleton } from "@/components/ui/display";
@@ -27,6 +28,7 @@ export default function Projetos() {
   const novo = useQueryParam("novo");
   const [creatingState, setCreating] = useState<boolean | null>(null);
   const creating = creatingState ?? novo === "1";
+  const [importing, setImporting] = useState(false);
 
   const list = useList<ProjectDto>(ws("/projects"));
   const filtered = list.items.filter(
@@ -41,9 +43,14 @@ export default function Projetos() {
         script="projetos"
         description="Pessoais, produtos próprios, clientes e trabalho profissional. O progresso vem das tarefas concluídas."
         actions={
-          <Button icon={<Plus aria-hidden className="size-4" />} onClick={() => setCreating(true)}>
-            Novo projeto
-          </Button>
+          <>
+            <Button variant="secondary" icon={<GitBranch aria-hidden className="size-4" />} onClick={() => setImporting(true)}>
+              Importar do GitHub
+            </Button>
+            <Button icon={<Plus aria-hidden className="size-4" />} onClick={() => setCreating(true)}>
+              Novo projeto
+            </Button>
+          </>
         }
       />
       <Tabs<CatTab>
@@ -101,6 +108,14 @@ export default function Projetos() {
                   <ProjectStatusBadge status={p.status} />
                   {p.dueDate && <span className="font-mono text-xs text-text-2">entrega {fmtDate(p.dueDate)}</span>}
                 </div>
+                {p.githubRepoId && (
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="inline-flex items-center gap-1 font-mono text-xs text-text-2">
+                      <GitBranch aria-hidden className="size-3" /> {p.githubFullName}
+                    </span>
+                    <GithubTags org={p.githubOrg} archived={p.githubArchived} />
+                  </div>
+                )}
                 <Progress value={p.progress?.percent ?? null} label={`Progresso de ${p.name}`} />
               </Link>
             </li>
@@ -108,6 +123,7 @@ export default function Projetos() {
         </ul>
       )}
 
+      <GithubImportSheet open={importing} onOpenChange={setImporting} onImported={list.reload} />
       <ProjectSheet open={creating} onOpenChange={setCreating} project={null} onSaved={(p) => router.push(`/projetos/${p.id}`)} />
     </>
   );

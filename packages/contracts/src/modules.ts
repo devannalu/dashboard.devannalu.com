@@ -152,6 +152,8 @@ export interface ProjectDto {
   id: string; name: string; description: string | null;
   category: z.infer<typeof projectCategorySchema>; status: z.infer<typeof projectStatusSchema>; priority: z.infer<typeof prioritySchema>;
   startDate: string | null; dueDate: string | null; clientId: string | null; client?: Ref;
+  /** Vínculo com o GitHub (D-39): `githubOrg` nulo = repositório pessoal. */
+  githubRepoId: string | null; githubFullName: string | null; githubUrl: string | null; githubOrg: string | null; githubArchived: boolean;
   createdAt: string; updatedAt: string;
   /** Progresso por tarefas (ADR-009): concluídas / total; `null` = sem tarefas. */
   progress?: { done: number; total: number; percent: number | null };
@@ -260,3 +262,42 @@ export interface GithubContributionsDto {
   to?: string;
   days?: { date: string; count: number }[];
 }
+
+/** Repositório do GitHub disponível para importar como projeto (D-39). */
+export interface GithubRepoDto {
+  /** Id numérico do GitHub, como texto. */
+  id: string;
+  name: string;
+  fullName: string;
+  description: string | null;
+  url: string;
+  private: boolean;
+  /** Arquivado no próprio GitHub. */
+  archived: boolean;
+  /** Organização dona; `null` = repositório pessoal. */
+  org: string | null;
+  pushedAt: string | null;
+  /** Projeto já criado a partir deste repositório, se houver. */
+  projectId: string | null;
+}
+
+export interface GithubReposDto {
+  configured: boolean;
+  data: GithubRepoDto[];
+  /** Organizações cujo token falhou (o resto da lista continua aparecendo). */
+  failedOrgs?: string[];
+}
+
+export const githubImportSchema = z.object({
+  items: z
+    .array(
+      z.object({
+        repoId: z.string().regex(/^\d{1,20}$/, 'Repositório inválido.'),
+        category: projectCategorySchema,
+        clientId: optId,
+      }),
+    )
+    .min(1, 'Escolha ao menos um repositório.')
+    .max(100),
+});
+export type GithubImportInput = z.infer<typeof githubImportSchema>;

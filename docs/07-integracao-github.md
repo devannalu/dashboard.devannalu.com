@@ -3,7 +3,7 @@
 > Status: rascunho para revisão · Fase 0 · 10/11/2026
 > Nada desta integração foi implementado ou validado contra a API do GitHub ainda. Os detalhes de endpoints e eventos devem ser conferidos na documentação oficial durante a implementação.
 
-> **Antecipado em 11/11/2026 (D-37):** o gráfico de contribuições do Início já lê o calendário do perfil via GraphQL com um token pessoal somente leitura (`GITHUB_TOKEN`). O restante deste documento (GitHub App, repositórios, PRs, issues, webhooks) continua como Fase 1.1.
+> **Antecipado em 11/11/2026 (D-37):** o gráfico de contribuições do Início já lê o calendário do perfil via GraphQL com um token pessoal somente leitura (`GITHUB_TOKEN`). Também antecipada (D-39): **importar repositórios como projetos** (Projetos → Importar do GitHub), com `GITHUB_TOKEN` para os repositórios pessoais e `GITHUB_ORG_TOKENS` para organizações (ex.: Florence). O restante deste documento (GitHub App, PRs, issues, webhooks) continua como Fase 1.1.
 
 ## 1. Objetivos e limites
 

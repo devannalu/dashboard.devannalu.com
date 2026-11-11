@@ -1,13 +1,14 @@
 "use client";
 
 import { priorityLabel, projectCategoryLabel, type MilestoneDto, type NoteDto, type ProjectDto, type TaskDto } from "@studio/contracts";
-import { ArrowLeft, Flag, Pencil, Plus, Trash2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, Flag, GitBranch, Pencil, Plus, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useState } from "react";
 import { CherryCheck, LoadError, ProjectStatusBadge, Tabs } from "@/components/app/common";
 import { clean, EntityForm } from "@/components/app/entity-form";
 import { FilesPanel } from "@/components/app/files-panel";
+import { GithubTags } from "@/components/app/github-import";
 import { ProjectSheet } from "@/components/app/project-sheet";
 import { TaskBoard, TaskRow, TaskSheet, useTaskActions } from "@/components/app/tasks";
 import { Button, IconButton } from "@/components/ui/button";
@@ -102,6 +103,14 @@ export default function ProjetoDetalhe() {
             {p.client && <Link href={`/clientes?abrir=${p.client.id}`} className="underline">{p.client.name}</Link>}
             {p.dueDate && <span className="font-mono">entrega {fmtDate(p.dueDate)}</span>}
           </p>
+          {p.githubUrl && (
+            <p className="mt-2 flex flex-wrap items-center gap-2 text-sm">
+              <a href={p.githubUrl} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 font-mono text-xs font-bold text-accent-text hover:underline">
+                <GitBranch aria-hidden className="size-3.5" /> {p.githubFullName} <ExternalLink aria-hidden className="size-3" />
+              </a>
+              <GithubTags org={p.githubOrg} archived={p.githubArchived} />
+            </p>
+          )}
         </div>
         <div className="flex gap-2">
           <Button variant="secondary" icon={<Pencil aria-hidden className="size-4" />} onClick={() => setEditingProject(true)}>

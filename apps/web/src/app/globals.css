@@ -25,12 +25,12 @@
   --success: #2c6a48;
   --info: #2f5470;
   --warn: #9a6a00;
-  /* Escala do gráfico de contribuições: cereja do claro ao intenso. */
-  --heat-0: rgba(30, 18, 20, 0.08);
-  --heat-1: #f3a5aa;
-  --heat-2: #e2525c;
-  --heat-3: #c01b27;
-  --heat-4: #7e1414;
+  /* Escala do gráfico de contribuições ("brasa"): do apagado ao mais intenso. */
+  --heat-0: #e4d9d4;
+  --heat-1: #ffc98f;
+  --heat-2: #ff7a4d;
+  --heat-3: #e0262c;
+  --heat-4: #8f1018;
   --shadow: 0 8px 32px rgba(40, 10, 14, 0.12);
   color-scheme: light;
 }
@@ -54,11 +54,11 @@
     --success: #8fd3ac;
     --info: #9dc0dc;
     --warn: #f2c96b;
-    --heat-0: rgba(255, 255, 255, 0.07);
-    --heat-1: #5e1519;
-    --heat-2: #a11b22;
-    --heat-3: #e0353e;
-    --heat-4: #ff9aa0;
+    --heat-0: #2b1d20;
+    --heat-1: #8c1424;
+    --heat-2: #e0262c;
+    --heat-3: #ff6a45;
+    --heat-4: #ffc861;
     --shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
     color-scheme: dark;
   }
@@ -82,11 +82,11 @@
   --success: #8fd3ac;
   --info: #9dc0dc;
   --warn: #f2c96b;
-  --heat-0: rgba(255, 255, 255, 0.07);
-  --heat-1: #5e1519;
-  --heat-2: #a11b22;
-  --heat-3: #e0353e;
-  --heat-4: #ff9aa0;
+  --heat-0: #2b1d20;
+  --heat-1: #8c1424;
+  --heat-2: #e0262c;
+  --heat-3: #ff6a45;
+  --heat-4: #ffc861;
   --shadow: 0 8px 32px rgba(0, 0, 0, 0.45);
   color-scheme: dark;
 }

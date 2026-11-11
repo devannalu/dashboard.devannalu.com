@@ -33,6 +33,28 @@ export const envSchema = z.object({
    * Fica só no servidor; nunca vai para o banco, para a interface ou para os logs.
    */
   GITHUB_TOKEN: z.preprocess(emptyToUndefined, z.string().min(20, 'token do GitHub parece incompleto').optional()),
+  /**
+   * Tokens extras, um por organização (token fine-grained tem um único dono), para importar os
+   * repositórios dela como "Trabalho profissional" (D-39). Formato: `org=token,outra-org=token`.
+   */
+  GITHUB_ORG_TOKENS: z.preprocess(
+    emptyToUndefined,
+    z
+      .string()
+      .transform((v) => v.split(',').map((p) => p.trim()).filter(Boolean))
+      .pipe(
+        z.array(
+          z
+            .string()
+            .regex(/^[A-Za-z0-9][A-Za-z0-9-]{0,38}=\S{20,}$/, 'use o formato org=token (separe várias por vírgula)')
+            .transform((p) => {
+              const i = p.indexOf('=');
+              return { org: p.slice(0, i), token: p.slice(i + 1) };
+            }),
+        ),
+      )
+      .optional(),
+  ),
   /** Quantos proxies confiáveis existem na frente da API (Traefik → Next = 1 salto até a API). Define o IP real. */
   TRUST_PROXY_HOPS: z.coerce.number().int().min(0).max(5).default(1),
 });
